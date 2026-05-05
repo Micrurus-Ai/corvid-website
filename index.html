@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corvid. The programming language that checks your AI before it runs.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--ink:#0a0a0a;--ink-s:#2a2a2a;--ink-t:#666;
+--paper:#fafaf7;--paper-w:#f0efea;
+--border:#ddd;
+--red:#b84a35;--green:#5a8a52;
+--serif:'Source Serif 4',Georgia,serif;
+--sans:'Source Sans 3',-apple-system,sans-serif;
+--mono:'JetBrains Mono',monospace;
+--max:1100px;--ease:cubic-bezier(.16,1,.3,1)
+}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{font-family:var(--sans);font-size:17px;line-height:1.7;color:var(--ink);background:var(--paper);overflow-x:hidden}
+::selection{background:var(--ink);color:var(--paper)}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;transition:all .5s var(--ease)}
+nav.scrolled{background:rgba(250,250,247,.97);backdrop-filter:blur(20px);box-shadow:0 0 0 1px rgba(0,0,0,.04)}
+nav.dark{background:transparent;box-shadow:none}
+nav.dark.scrolled{background:rgba(10,10,10,.95);backdrop-filter:blur(20px)}
+.nl svg{height:26px;width:auto;display:block}
+.lf{fill:var(--ink);transition:fill .4s}
+nav.dark .lf{fill:var(--paper)}
+.nr{display:flex;align-items:center;gap:4px;list-style:none}
+.nr a{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--ink-t);padding:8px 14px;border-radius:99px;transition:all .3s}
+.nr a:hover{color:var(--ink);background:rgba(0,0,0,.04)}
+nav.dark .nr a{color:rgba(255,255,255,.35)}
+nav.dark .nr a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.gi{fill:var(--ink-t);transition:fill .3s}
+nav.dark .gi{fill:rgba(255,255,255,.35)}
+.gh{display:inline-flex;align-items:center;padding:8px!important}
+.gh svg{width:16px;height:16px}
+.nav-cta{color:var(--paper)!important;background:var(--ink)!important;border-radius:99px!important;padding:8px 20px!important;font-size:11px!important;transition:all .3s var(--ease)!important}
+.nav-cta:hover{opacity:.85!important;background:var(--ink)!important}
+nav.dark .nav-cta{color:var(--ink)!important;background:var(--paper)!important}
+nav.dark .nav-cta:hover{opacity:.85!important}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 48px;background:var(--ink);color:var(--paper);position:relative;overflow:hidden}
+.hc{position:relative;z-index:2;max-width:900px}
+.hm{margin-bottom:40px;opacity:0;filter:blur(8px);transform:scale(.9);animation:markFocus 1.2s var(--ease) .1s forwards}
+@keyframes markFocus{to{opacity:1;filter:blur(0);transform:scale(1)}}
+.hm svg{width:76px;height:76px}
+.hero h1{font-family:var(--serif);font-size:clamp(38px,5.2vw,68px);font-weight:400;line-height:1.1;letter-spacing:-.03em;margin-bottom:24px;opacity:0;filter:blur(12px);transform:scale(1.06);animation:heroFocus 1.4s var(--ease) .4s forwards}
+@keyframes heroFocus{to{opacity:1;filter:blur(0);transform:scale(1)}}
+.hs{font-family:var(--serif);font-size:clamp(15px,1.15vw,17px);font-weight:300;font-style:italic;color:rgba(255,255,255,.3);max-width:600px;margin:0 auto;line-height:1.75;opacity:0;filter:blur(6px);animation:subFocus 1s var(--ease) 1.4s forwards;text-align:center}
+@keyframes subFocus{to{opacity:1;filter:blur(0)}}
+.hero-cta{margin-top:48px;opacity:0;animation:fu 1s var(--ease) 2s forwards;transform:translateY(16px)}
+.hero-cta code{font-family:var(--mono);font-size:13px;color:rgba(255,255,255,.25);padding:12px 28px;border:1px solid rgba(255,255,255,.08);border-radius:4px;cursor:pointer;transition:all .3s var(--ease);display:inline-block;letter-spacing:.02em}
+.hero-cta code:hover{color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.03)}
+
+/* ── STATEMENT (compiler boot sequence) ── */
+.statement{padding:120px 48px;max-width:960px;margin:0 auto}
+.st-terminal{background:var(--ink);border-radius:12px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.12)}
+.st-header{padding:16px 24px;background:rgba(255,255,255,.03);display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.04)}
+.st-dot{width:10px;height:10px;border-radius:50%}
+.st-dot:nth-child(1){background:#ff5f57}.st-dot:nth-child(2){background:#ffbd2e}.st-dot:nth-child(3){background:#28c840}
+.st-title{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.2);margin-left:auto}
+.st-body{padding:40px 48px;font-family:var(--mono);font-size:16px;line-height:2.4}
+.st-line{opacity:0;transform:translateX(-4px);transition:all .4s var(--ease)}
+.st-line.v{opacity:1;transform:translateX(0)}
+.st-cmd{color:rgba(255,255,255,.25)}
+.st-cmd b{color:rgba(255,255,255,.5);font-weight:500}
+.st-mod{color:rgba(255,255,255,.18)}
+.st-mod i{font-style:normal;color:#8aaa7a}
+.st-check{color:#8aaa7a}
+.st-result{color:rgba(255,255,255,.6);margin-top:12px;padding-top:16px;border-top:1px solid rgba(255,255,255,.04)}
+.st-result b{color:#fff;font-weight:500}
+.st-cursor{display:inline-block;width:9px;height:18px;background:rgba(255,255,255,.5);margin-left:2px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── SHARED ── */
+.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-t);margin-bottom:20px}
+.section-title{font-family:var(--serif);font-size:clamp(28px,3.4vw,46px);font-weight:400;line-height:1.15;letter-spacing:-.02em;color:var(--ink);margin-bottom:36px}
+.body-text{font-family:var(--sans);font-size:17px;line-height:1.85;color:var(--ink-s);max-width:560px}
+.body-text + .body-text{margin-top:16px}
+.rv{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.rv.v{opacity:1;transform:translateY(0)}
+
+/* ── PROBLEM ── */
+.problem{padding:0 48px 160px;max-width:var(--max);margin:0 auto}
+.problem .scene{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--ink);line-height:1.7;max-width:560px}
+.problem .turn{font-family:var(--serif);font-size:22px;font-weight:500;color:var(--ink);margin-top:40px;padding-top:40px;border-top:2px solid var(--ink);max-width:560px}
+
+/* ═══ DEMO (cards overlapping from right) ═══ */
+.demo-section{background:var(--paper-w);padding:140px 48px 60px}
+.demo-section .si{max-width:var(--max);margin:0 auto}
+.demo-stack{position:relative;max-width:var(--max);margin:0 auto;padding:0 48px 100px}
+.demo-card{position:sticky;top:100px;background:var(--paper);border-radius:10px;padding:36px;display:grid;grid-template-columns:280px 1fr;gap:36px;align-items:start;box-shadow:0 8px 40px rgba(0,0,0,.07);margin-bottom:40px;transition:transform .4s var(--ease)}
+.demo-card:nth-child(1){z-index:1;transform:translateX(0)}
+.demo-card:nth-child(2){z-index:2;transform:translateX(16px)}
+.demo-card:nth-child(3){z-index:3;transform:translateX(32px)}
+.demo-card .step-num{font-family:var(--mono);font-size:40px;font-weight:500;color:var(--border);line-height:1;margin-bottom:12px}
+.demo-card h2{font-family:var(--serif);font-size:22px;font-weight:400;line-height:1.25;margin-bottom:10px}
+.demo-card p{font-family:var(--sans);font-size:14px;line-height:1.75;color:var(--ink-s)}
+.demo-panel{background:var(--ink);border-radius:8px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.08)}
+.demo-header{padding:10px 16px;background:rgba(255,255,255,.03);display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.demo-dot{width:7px;height:7px;border-radius:50%}
+.demo-dot:nth-child(1){background:#ff5f57}.demo-dot:nth-child(2){background:#ffbd2e}.demo-dot:nth-child(3){background:#28c840}
+.demo-file{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.2);margin-left:auto}
+.demo-panel pre{padding:16px 20px;margin:0;font-family:var(--mono);font-size:12px;line-height:1.75;color:#ddd;overflow:hidden}
+.dsb{font-family:var(--mono);font-size:12px;padding:10px 24px}
+.dsb.er{background:rgba(184,74,53,.12);border-top:2px solid var(--red);color:var(--red)}
+.dsb.ok{background:rgba(90,138,82,.08);border-top:2px solid var(--green);color:var(--green)}
+.ck{color:#c4b5a0}.ct{color:#a8b4c0}.cs{color:#b8c9a3}.cf{color:#d4c5a9}
+.co{color:#888}.cn{color:#c9b89a}.cd{color:#d4a0a0}.cg{color:#8ab88a}
+
+/* ── SOLUTION ── */
+.solution{background:var(--ink);color:var(--paper);padding:160px 48px}
+.solution .si{max-width:var(--max);margin:0 auto}
+.solution .eyebrow{color:rgba(255,255,255,.25)}
+.solution .section-title{color:var(--paper)}
+.solution .body-text{color:rgba(255,255,255,.5)}
+.solution .core{font-family:var(--serif);font-size:20px;font-style:italic;color:rgba(255,255,255,.75);margin-top:8px}
+.principles{margin-top:72px;display:grid;grid-template-columns:repeat(3,1fr);gap:48px}
+.principle{font-size:15px;line-height:1.8;color:rgba(255,255,255,.3)}
+.principle strong{display:block;font-family:var(--serif);font-size:17px;font-weight:400;color:var(--paper);margin-bottom:8px}
+
+/* ── DIMENSIONS ── */
+.dims{padding:140px 48px;background:var(--paper-w)}
+.dims .si{max-width:var(--max);margin:0 auto}
+.dims-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-top:56px;border:1px solid var(--border)}
+.dim{padding:32px 20px;text-align:center;border-right:1px solid var(--border);transition:background .3s}
+.dim:last-child{border-right:none}
+.dim:hover{background:var(--paper)}
+.dim-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.dim-name{font-family:var(--sans);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-s);margin-bottom:4px}
+.dim-rule{font-family:var(--mono);font-size:10px;color:var(--ink-t)}
+
+/* ── INVENTIONS ── */
+.inventions{padding:140px 48px}
+.inventions .si{max-width:var(--max);margin:0 auto}
+.inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:48px}
+.inv-card{background:var(--paper-w);padding:36px;transition:all .4s var(--ease)}
+.inv-card:hover{background:var(--paper);box-shadow:0 12px 40px rgba(0,0,0,.04);transform:translateY(-2px)}
+.inv-card h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--ink);margin-bottom:10px}
+.inv-card p{font-family:var(--sans);font-size:13px;color:var(--ink-s);line-height:1.7;margin-bottom:14px}
+.inv-card pre{font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--ink-s);background:var(--paper);padding:16px;overflow:hidden;border-radius:3px}
+.inv-card .ck{color:#7a6a52}.inv-card .ct{color:#5a6a7a}.inv-card .cs{color:#5a7a5a}
+.inv-card .cf{color:#8a7a5a}.inv-card .cd{color:#9a5a5a}.inv-card .co{color:#888}
+.inv-card .cn{color:#7a6a52}.inv-card .cg{color:#5a8a5a}
+
+/* ── EXAMPLES (card stack from bottom) ── */
+.examples{background:var(--ink);position:relative;padding-bottom:100px}
+.ex-header{padding:140px 48px 60px;max-width:var(--max);margin:0 auto}
+.examples .eyebrow{color:rgba(255,255,255,.2)}
+.examples .section-title{color:var(--paper);margin-bottom:16px}
+.examples .sd-text{font-family:var(--sans);font-size:16px;color:rgba(255,255,255,.3);max-width:480px}
+.ex-stack{position:relative;max-width:var(--max);margin:0 auto;padding:0 48px}
+.ex-card{position:sticky;top:100px;background:#111;border-radius:10px;padding:48px;display:grid;grid-template-columns:240px 1fr;gap:48px;align-items:start;box-shadow:0 8px 40px rgba(0,0,0,.4);margin-bottom:40px;transition:transform .4s var(--ease)}
+.ex-card:nth-child(1){z-index:1;transform:translateX(0)}
+.ex-card:nth-child(2){z-index:2;transform:translateX(16px)}
+.ex-card:nth-child(3){z-index:3;transform:translateX(32px)}
+.ex-card:nth-child(4){z-index:4;transform:translateX(48px)}
+.ex-card .ex-domain{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:12px}
+.ex-card h3{font-family:var(--serif);font-size:22px;font-weight:400;color:#fff;margin-bottom:12px}
+.ex-card p{font-family:var(--sans);font-size:14px;color:rgba(255,255,255,.38);line-height:1.8;margin-bottom:12px}
+.sn{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.18);padding-top:12px;border-top:1px solid rgba(255,255,255,.06);line-height:1.8}
+.sn span{color:rgba(192,82,58,.5)}
+.cp{border-radius:6px;overflow:hidden;border:1px solid rgba(184,201,163,.1);background:#0c1410}
+.cp:hover{border-color:rgba(184,201,163,.2);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.cph{padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between}
+.cpht{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#8aaa7a}
+.cphf{font-family:var(--mono);font-size:11px;opacity:.15;color:#fff}
+.cp pre{padding:20px 24px;overflow:hidden;font-family:var(--mono);font-size:13px;line-height:1.85;color:#ddd}
+
+/* ── COMMUNITY ── */
+.community{padding:140px 48px;background:var(--paper-w)}
+.community .si{max-width:660px;margin:0 auto}
+.community .id{font-family:var(--serif);font-style:italic;font-size:19px;color:var(--ink);line-height:1.65;margin-top:36px;padding-top:36px;border-top:2px solid var(--border)}
+
+/* ── CTA ── */
+.cta{padding:180px 48px;text-align:center}
+.cta-in{max-width:580px;margin:0 auto}
+.cta h2{font-family:var(--serif);font-size:clamp(26px,3.2vw,44px);font-weight:400;line-height:1.25;letter-spacing:-.02em;margin-bottom:16px}
+.cta-s{font-family:var(--serif);font-size:18px;font-weight:300;font-style:italic;color:var(--ink-t);margin-bottom:48px}
+.cta-b{display:inline-block;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--paper);background:var(--ink);padding:18px 56px;text-decoration:none;transition:all .3s var(--ease)}
+.cta-b:hover{letter-spacing:.12em;padding:18px 64px}
+.ic{margin-top:28px;font-family:var(--mono);font-size:14px}
+.ic code{color:var(--ink-t);padding:10px 20px;background:var(--paper-w);border:1px solid var(--border);cursor:pointer;transition:all .3s;display:inline-block}
+.ic code:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ── FOOTER ── */
+footer{padding:48px;border-top:1px solid var(--border)}
+.fi{max-width:var(--max);margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.ft{font-family:var(--sans);font-size:13px;color:var(--ink-t)}
+.ft a{color:var(--ink-s);text-decoration:none}.ft a:hover{color:var(--ink)}
+
+/* ── INLINE CTAs ── */
+.section-cta{display:flex;align-items:center;gap:16px;margin-top:40px;flex-wrap:wrap}
+.section-cta code{font-family:var(--mono);font-size:13px;color:var(--ink-t);padding:10px 24px;background:var(--paper-w);border:1px solid var(--border);cursor:pointer;display:inline-block;transition:all .3s var(--ease);border-radius:4px}
+.section-cta code:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.section-cta a{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--ink-t);padding:10px 20px;border:1px solid var(--border);border-radius:4px;transition:all .3s var(--ease)}
+.section-cta a:hover{color:var(--ink);border-color:var(--ink-s)}
+/* Dark variant */
+.section-cta-dark code{color:rgba(255,255,255,.25);background:transparent;border-color:rgba(255,255,255,.1)}
+.section-cta-dark code:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.2)}
+.section-cta-dark a{color:rgba(255,255,255,.25);border-color:rgba(255,255,255,.1)}
+.section-cta-dark a:hover{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.25)}
+
+/* ── ANIMATIONS ── */
+@keyframes fu{to{opacity:1;transform:translateY(0)}}
+@keyframes pi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){.principles{grid-template-columns:1fr;gap:32px}.inv-grid{grid-template-columns:1fr}.ex-card{grid-template-columns:1fr}.dims-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){nav{padding:0 24px;height:56px}.nr{gap:2px}.nr a{padding:6px 10px;font-size:10px}.hero{padding:100px 24px}.statement,.problem,.cta-in{padding-left:24px;padding-right:24px}.solution,.dims,.inventions,.community,.cta,.demo-section{padding-left:24px;padding-right:24px}.demo-stack,.ex-header,.ex-stack{padding-left:24px;padding-right:24px}.ex-card,.demo-card{padding:24px;grid-template-columns:1fr}.dims-grid{grid-template-columns:repeat(2,1fr)}footer{padding:24px}.fi{flex-direction:column;gap:10px;text-align:center}}
+@media(max-width:480px){.dims-grid{grid-template-columns:1fr}.demo-panel pre{font-size:11px;padding:16px}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#" class="nl"><svg viewBox="0 0 279 279" xmlns="http://www.w3.org/2000/svg"><circle cx="139.15" cy="139.15" r="139.15" class="lf" opacity=".1"/><path class="lf" d="M232.85,36.56c25.48,23.34,43.58,57.46,45.36,92.34,1.21,38.35-9.81,75.01-36.1,103.54-2.3,2.43-4.63,4.81-7.02,7.14-.54.58-1.07,1.16-1.62,1.76-14.33,15.19-34.64,25.21-54.38,31.24q-1.26.39-2.54.78c-29.4,8.64-61.03,5.73-89.46-4.78-.35-11.45.25-21.82,3-33,.57-2.39,1.15-4.78,1.72-7.17.94-3.92,1.89-7.84,2.85-11.75.3-1.21.6-2.43.9-3.67.27-1.09.54-2.18.82-3.3,3.5-15.33,3.1-30.43-5.05-44.14-5.43-8.59-13.36-13.7-23.24-15.96-3.01-.47-5.96-.76-9-1,.33-.99.66-1.98,1-3q.94-.15,1.91-.3c.86-.15,1.71-.3,2.59-.45q1.25-.21,2.53-.42c7.1-1.98,12.52-5.72,17.97-10.58.61-.53,1.22-1.06,1.84-1.61,3.26-2.86,6.35-5.81,9.34-8.96,7.01-7.21,15.66-12.49,25.86-12.99,1.42-.02,2.84-.02,4.26-.01.75,0,1.5.01,2.27.02,13.35.29,22.8,5.92,31.97,15.43,7.08,8.29,13.02,17.54,18.82,26.74,3.7,5.83,7.66,11.43,11.75,17,.57.79,1.15,1.57,1.74,2.38q6.04,9,14.14,15.75c-.39-.92-.77-1.84-1.17-2.79-9.82-23.72-16.25-51.03-6.39-75.84,6.57-14.14,16.36-24.14,30.98-29.7,4.2-1.11,8.27-1.01,12.57-.68v-2c-.97.08-1.94.17-2.94.25-9.9-.04-19.64-7.68-26.32-14.32-3.08-3.13-6.12-6.29-9.16-9.47-12.81-13.38-27.32-23.19-46.4-23.76-16.16.35-27.85,7.3-39.19,18.31-.64.57-1.28,1.14-1.95,1.72-7.6,6.98-13.17,15.87-19.05,24.28-1.18,1.67-2.35,3.35-3.53,5.02-4.04,5.76-8.07,11.52-12.08,17.29-13.48,19.39-28.23,37.47-44.39,54.69q-.92.98-1.86,1.99c-4.09,4.23-8.57,7.91-13.15,11.59-2.12,1.72-4.22,3.45-6.3,5.22-.54.46-1.09.92-1.65,1.4-1.54,1.31-3.08,2.62-4.61,3.93q-2.43,1.87-4.43,1.87c-.65-2.54-1.29-5.08-1.94-7.62-.18-.71-.36-1.43-.55-2.16-.18-.7-.35-1.4-.54-2.13q-.24-.96-.49-1.94c-7.29-32.58,1.5-68.4,18.52-96.45,1.92-2.96,3.92-5.84,6-8.7.58-.8,1.16-1.61,1.75-2.43C51.46,25.4,84.32,6.94,121.1,1.58q1.16-.2,2.35-.39c39.14-5.67,80.33,9.49,109.4,35.37Z"/></svg></a>
+  <ul class="nr">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#language">Language</a></li>
+    <li><a href="#examples">Examples</a></li>
+    <li><a href="https://github.com/corvid-lang/corvid" class="gh" target="_blank"><svg viewBox="0 0 24 24"><path class="gi" d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></li>
+    <li><a href="#get-started" class="nav-cta">Get Started</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hc">
+    <div class="hm"><svg viewBox="0 0 279 279" xmlns="http://www.w3.org/2000/svg"><circle cx="139.15" cy="139.15" r="139.15" fill="#fafaf7"/><path d="M232.85,36.56c25.48,23.34,43.58,57.46,45.36,92.34,1.21,38.35-9.81,75.01-36.1,103.54-2.3,2.43-4.63,4.81-7.02,7.14-.54.58-1.07,1.16-1.62,1.76-14.33,15.19-34.64,25.21-54.38,31.24q-1.26.39-2.54.78c-29.4,8.64-61.03,5.73-89.46-4.78-.35-11.45.25-21.82,3-33,.57-2.39,1.15-4.78,1.72-7.17.94-3.92,1.89-7.84,2.85-11.75.3-1.21.6-2.43.9-3.67.27-1.09.54-2.18.82-3.3,3.5-15.33,3.1-30.43-5.05-44.14-5.43-8.59-13.36-13.7-23.24-15.96-3.01-.47-5.96-.76-9-1,.33-.99.66-1.98,1-3q.94-.15,1.91-.3c.86-.15,1.71-.3,2.59-.45q1.25-.21,2.53-.42c7.1-1.98,12.52-5.72,17.97-10.58.61-.53,1.22-1.06,1.84-1.61,3.26-2.86,6.35-5.81,9.34-8.96,7.01-7.21,15.66-12.49,25.86-12.99,1.42-.02,2.84-.02,4.26-.01.75,0,1.5.01,2.27.02,13.35.29,22.8,5.92,31.97,15.43,7.08,8.29,13.02,17.54,18.82,26.74,3.7,5.83,7.66,11.43,11.75,17,.57.79,1.15,1.57,1.74,2.38q6.04,9,14.14,15.75c-.39-.92-.77-1.84-1.17-2.79-9.82-23.72-16.25-51.03-6.39-75.84,6.57-14.14,16.36-24.14,30.98-29.7,4.2-1.11,8.27-1.01,12.57-.68v-2c-.97.08-1.94.17-2.94.25-9.9-.04-19.64-7.68-26.32-14.32-3.08-3.13-6.12-6.29-9.16-9.47-12.81-13.38-27.32-23.19-46.4-23.76-16.16.35-27.85,7.3-39.19,18.31-.64.57-1.28,1.14-1.95,1.72-7.6,6.98-13.17,15.87-19.05,24.28-1.18,1.67-2.35,3.35-3.53,5.02-4.04,5.76-8.07,11.52-12.08,17.29-13.48,19.39-28.23,37.47-44.39,54.69q-.92.98-1.86,1.99c-4.09,4.23-8.57,7.91-13.15,11.59-2.12,1.72-4.22,3.45-6.3,5.22-.54.46-1.09.92-1.65,1.4-1.54,1.31-3.08,2.62-4.61,3.93q-2.43,1.87-4.43,1.87c-.65-2.54-1.29-5.08-1.94-7.62-.18-.71-.36-1.43-.55-2.16-.18-.7-.35-1.4-.54-2.13q-.24-.96-.49-1.94c-7.29-32.58,1.5-68.4,18.52-96.45,1.92-2.96,3.92-5.84,6-8.7.58-.8,1.16-1.61,1.75-2.43C51.46,25.4,84.32,6.94,121.1,1.58q1.16-.2,2.35-.39c39.14-5.67,80.33,9.49,109.4,35.37Z" fill="#0a0a0a"/><circle cx="125.5" cy="135.5" r="12.5" fill="#fafaf7"/><circle cx="157.5" cy="61.5" r="12.5" fill="#0a0a0a"/><circle cx="157.5" cy="61.5" r="2.5" fill="#fafaf7"/><circle cx="125.5" cy="135.5" r="2.5" fill="#0a0a0a"/></svg></div>
+    <h1 id="ht">The first programming language designed for the age of AI.</h1>
+    <p class="hs">We gave machines the ability to reason, decide, and act. Then we kept building them with languages that can't see any of it happening.</p>
+    <div class="hero-cta"><code onclick="navigator.clipboard.writeText('curl -sSf https://install.corvid-lang.org | sh');this.textContent='Copied!';setTimeout(()=>{this.textContent='curl -sSf https://install.corvid-lang.org | sh'},1500)">curl -sSf https://install.corvid-lang.org | sh</code></div>
+  </div>
+</section>
+
+<!-- STATEMENT -->
+<div class="statement">
+  <div class="st-terminal" id="st-term">
+    <div class="st-header"><div class="st-dot"></div><div class="st-dot"></div><div class="st-dot"></div><span class="st-title">corvid check</span></div>
+    <div class="st-body">
+      <div class="st-line"><span class="st-cmd">$ <b>corvid check</b> main.cor</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> prompts</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> tools</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> approvals</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> budgets</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> confidence</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> grounding</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> citations</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> model_routing</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> streaming</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> replay</span></div>
+      <div class="st-line"><span class="st-mod"><i>&#10003;</i> verification</span></div>
+      <div class="st-line"><span class="st-result"><b>11 constructs checked. 0 errors.</b> Not libraries. Language.</span></div>
+      <div class="st-line"><span class="st-cmd">$ <span class="st-cursor"></span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="rv"><div class="eyebrow">Problem</div><h2 class="section-title">You already know this feeling.</h2></div>
+  <div class="rv">
+    <p class="scene">It's 2am. Something your AI did woke you up. Maybe it issued a refund it shouldn't have. Maybe it sent a patient the wrong triage recommendation. Maybe it pushed a deployment that should have waited for review.</p>
+    <p class="body-text" style="margin-top:20px">You trace it back. The prompt was fine. The policy was in a separate file. The worker just... executed. Somewhere between three languages and a config nobody updated, the guardrail disappeared.</p>
+    <p class="body-text">Because your language had no idea what your program was <em>trying to do</em>.</p>
+    <p class="turn">Software changed. Languages didn't. Until now.</p>
+  </div>
+</section>
+
+<!-- THE DEMO (stacking cards) -->
+<section class="demo-section" id="demo">
+  <div class="si">
+    <div class="rv"><div class="eyebrow">See it happen</div><h2 class="section-title">The compiler catches what you miss.</h2></div>
+  </div>
+  <div class="demo-stack">
+
+    <div class="demo-card">
+      <div><div class="step-num">01</div><h2>Write a medical triage agent.</h2><p>Define the tools, their effects, and the agent. The <code>approve</code> line is required before any dangerous call.</p></div>
+      <div class="demo-panel"><div class="demo-header"><div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div><span class="demo-file">triage.cor</span></div><pre><span class="ck">effect</span> <span class="ct">clinical_action</span><span class="co">:</span>
+    trust<span class="co">:</span> human_required
+
+<span class="ck">tool</span> <span class="cf">prescribe</span>(id, med) <span class="co">-></span> <span class="ct">Order</span> <span class="cd">dangerous</span>
+
+<span class="ck">agent</span> <span class="cf">triage</span>(p<span class="co">:</span> <span class="ct">Patient</span>) <span class="co">-></span> <span class="ct">Assessment</span><span class="co">:</span>
+    result <span class="co">=</span> <span class="cf">assess</span>(p)
+    <span class="ck">if</span> result.urgency <span class="co">></span> <span class="cn">0.9</span><span class="co">:</span>
+        <span class="cd">approve</span> <span class="ct">Prescription</span>(p.id, result.med)
+        <span class="cf">prescribe</span>(p.id, result.med)
+    <span class="ck">return</span> result</pre></div>
+    </div>
+
+    <div class="demo-card">
+      <div><div class="step-num">02</div><h2>Remove the safety check.</h2><p>Delete the <code>approve</code> line. In Python, nothing happens. In Corvid, the compiler refuses to build.</p></div>
+      <div class="demo-panel"><div class="demo-header"><div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div><span class="demo-file">triage.cor</span></div><pre><span class="ck">effect</span> <span class="ct">clinical_action</span><span class="co">:</span>
+    trust<span class="co">:</span> human_required
+
+<span class="ck">tool</span> <span class="cf">prescribe</span>(id, med) <span class="co">-></span> <span class="ct">Order</span> <span class="cd">dangerous</span>
+
+<span class="ck">agent</span> <span class="cf">triage</span>(p<span class="co">:</span> <span class="ct">Patient</span>) <span class="co">-></span> <span class="ct">Assessment</span><span class="co">:</span>
+    result <span class="co">=</span> <span class="cf">assess</span>(p)
+    <span class="ck">if</span> result.urgency <span class="co">></span> <span class="cn">0.9</span><span class="co">:</span>
+        <span class="cf">prescribe</span>(p.id, result.med)
+    <span class="ck">return</span> result</pre><div class="dsb er">E0101: dangerous tool `prescribe` called without prior `approve`</div></div>
+    </div>
+
+    <div class="demo-card">
+      <div><div class="step-num">03</div><h2>Add it back. It compiles.</h2><p>The approval is not a suggestion. It is a type-system requirement. Present or absent. Compiles or doesn't.</p></div>
+      <div class="demo-panel"><div class="demo-header"><div class="demo-dot"></div><div class="demo-dot"></div><div class="demo-dot"></div><span class="demo-file">triage.cor</span></div><pre><span class="ck">effect</span> <span class="ct">clinical_action</span><span class="co">:</span>
+    trust<span class="co">:</span> human_required
+
+<span class="ck">tool</span> <span class="cf">prescribe</span>(id, med) <span class="co">-></span> <span class="ct">Order</span> <span class="cd">dangerous</span>
+
+<span class="ck">agent</span> <span class="cf">triage</span>(p<span class="co">:</span> <span class="ct">Patient</span>) <span class="co">-></span> <span class="ct">Assessment</span><span class="co">:</span>
+    result <span class="co">=</span> <span class="cf">assess</span>(p)
+    <span class="ck">if</span> result.urgency <span class="co">></span> <span class="cn">0.9</span><span class="co">:</span>
+        <span class="cd">approve</span> <span class="ct">Prescription</span>(p.id, result.med)
+        <span class="cf">prescribe</span>(p.id, result.med)
+    <span class="ck">return</span> result</pre><div class="dsb ok">&#10003; All checks passed.</div></div>
+    </div>
+
+    <div class="section-cta rv" style="max-width:var(--max);margin:48px auto 0;padding:0 48px">
+      <code onclick="navigator.clipboard.writeText('curl -sSf https://install.corvid-lang.org | sh');this.textContent='Copied!';setTimeout(()=>{this.textContent='curl -sSf https://install.corvid-lang.org | sh'},1500)">curl -sSf https://install.corvid-lang.org | sh</code>
+      <a href="https://github.com/corvid-lang/corvid" target="_blank">View source</a>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="language">
+  <div class="si">
+    <div class="rv"><div class="eyebrow">Solution</div><h2 class="section-title">AI belongs in the language.</h2></div>
+    <div class="rv">
+      <p class="body-text">Corvid starts from a simple premise: if your program reasons, decides, and acts, the compiler should see all three.</p>
+      <p class="body-text">Effects are not flat tags. Cost, trust, reversibility, data, latency, and confidence each compose with their own algebra. The compiler enforces each independently.</p>
+      <p class="core">This isn't a framework you import. It's the language itself.</p>
+    </div>
+    <div class="principles rv">
+      <div class="principle"><strong>Visible intent.</strong>What the system is trying to do is in the source. Typed, checked, and traceable.</div>
+      <div class="principle"><strong>Explicit boundaries.</strong>What it's allowed to do is a compile-time guarantee the program cannot violate.</div>
+      <div class="principle"><strong>Predictable behavior.</strong>Because the compiler sees reasoning, decision, and action in one pass.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DIMENSIONS -->
+<section class="dims">
+  <div class="si">
+    <div class="rv"><div class="eyebrow">Effect algebra</div><h2 class="section-title">Six dimensions. Six composition rules.</h2></div>
+    <div class="dims-grid rv">
+      <div class="dim"><div class="dim-name">Cost</div><div class="dim-val">$0.05</div><div class="dim-rule">Sum</div></div>
+      <div class="dim"><div class="dim-name">Trust</div><div class="dim-val">human</div><div class="dim-rule">Max</div></div>
+      <div class="dim"><div class="dim-name">Reversible</div><div class="dim-val">false</div><div class="dim-rule">AND</div></div>
+      <div class="dim"><div class="dim-name">Data</div><div class="dim-val">pii</div><div class="dim-rule">Union</div></div>
+      <div class="dim"><div class="dim-name">Latency</div><div class="dim-val">200ms</div><div class="dim-rule">Sum</div></div>
+      <div class="dim"><div class="dim-name">Confidence</div><div class="dim-val">0.92</div><div class="dim-rule">Min</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- INVENTIONS -->
+<section class="inventions" id="inventions">
+  <div class="si">
+    <div class="rv"><div class="eyebrow">What the compiler checks</div><h2 class="section-title">Built into the language.</h2></div>
+    <div class="inv-grid">
+      <div class="inv-card rv"><h3>Compile-time budgets</h3><p>Exceed the cost bound and the code won't compile.</p><pre><span class="cd">@budget($0.10)</span>
+<span class="ck">agent</span> <span class="cf">bounded</span>(text) <span class="co">-></span> <span class="ct">String</span><span class="co">:</span>
+    <span class="ck">return</span> <span class="cf">classify</span>(<span class="cf">classify</span>(text))</pre></div>
+      <div class="inv-card rv"><h3>Confidence gates</h3><p>Low confidence routes to approval automatically.</p><pre><span class="cd">@min_confidence(0.90)</span>
+<span class="ck">agent</span> <span class="cf">bot</span>(q) <span class="co">-></span> <span class="ct">String</span><span class="co">:</span>
+    <span class="ck">return</span> <span class="cf">search</span>(q)</pre></div>
+      <div class="inv-card rv"><h3>Grounded provenance</h3><p>The typechecker rejects returns without a retrieval chain.</p><pre><span class="ck">agent</span> <span class="cf">research</span>(id) <span class="co">-></span> <span class="ct">Grounded</span><span class="co">&lt;</span><span class="ct">String</span><span class="co">&gt;:</span>
+    <span class="ck">return</span> <span class="cf">fetch_doc</span>(id)</pre></div>
+      <div class="inv-card rv"><h3>Strict citations</h3><p>Compiler proves grounding. Runtime checks the model response.</p><pre><span class="ck">prompt</span> <span class="cf">answer</span>(ctx<span class="co">:</span> <span class="ct">Grounded</span>) <span class="co">-></span> <span class="ct">Grounded</span><span class="co">:</span>
+    <span class="cg">cites</span> ctx <span class="cg">strictly</span></pre></div>
+      <div class="inv-card rv"><h3>Model routing</h3><p>Cheap models first. Escalate on low confidence.</p><pre><span class="ck">prompt</span> <span class="cf">classify</span>(q) <span class="co">-></span> <span class="ct">String</span><span class="co">:</span>
+    progressive<span class="co">:</span>
+        cheap below <span class="cn">0.80</span>
+        expensive</pre></div>
+      <div class="inv-card rv"><h3>Replay and receipts</h3><p>Executions become reviewable, diffable evidence.</p><pre><span class="cd">@deterministic</span>
+<span class="cd">@replayable</span>
+<span class="ck">agent</span> <span class="cf">classify</span>(t) <span class="co">-></span> <span class="ct">String</span></pre></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXAMPLES (stacking cards) -->
+<section class="examples" id="examples">
+  <div class="ex-header">
+    <div class="rv"><div class="eyebrow">Examples</div><h2 class="section-title">One pattern. Every domain.</h2><p class="sd-text">Wherever AI makes a consequential decision, the same primitives apply.</p></div>
+  </div>
+  <div class="ex-stack">
+
+    <div class="ex-card">
+      <div><div class="ex-domain">Finance</div><h3>Refund agent</h3><p>Cost, trust, and reversibility dimensions. The compiler requires approval and enforces the budget.</p><div class="sn"><span>dangerous</span> + <span>@budget</span> + <span>@trust</span></div></div>
+      <div class="cp"><div class="cph"><span class="cpht">refund.cor</span><span class="cphf">finance</span></div><pre><span class="ck">effect</span> <span class="ct">transfer_money</span><span class="co">:</span>
+    cost<span class="co">:</span> <span class="cn">$0.50</span>
+    trust<span class="co">:</span> human_required
+    reversible<span class="co">:</span> <span class="cn">false</span>
+
+<span class="ck">tool</span> <span class="cf">issue_refund</span>(id) <span class="co">-></span> <span class="ct">Receipt</span> <span class="cd">dangerous</span>
+
+<span class="cd">@budget($1.00)</span>
+<span class="ck">agent</span> <span class="cf">refund</span>(id) <span class="co">-></span> <span class="ct">Receipt</span><span class="co">:</span>
+    <span class="cd">approve</span> <span class="ct">IssueRefund</span>(id)
+    <span class="ck">return</span> <span class="cf">issue_refund</span>(id)</pre></div>
+    </div>
+
+    <div class="ex-card">
+      <div><div class="ex-domain">Healthcare</div><h3>Medical triage</h3><p>Trust and PII dimensions. The compiler requires clinician approval and tracks data flow.</p><div class="sn"><span>dangerous</span> + <span>data: pii</span></div></div>
+      <div class="cp"><div class="cph"><span class="cpht">triage.cor</span><span class="cphf">healthcare</span></div><pre><span class="ck">effect</span> <span class="ct">clinical_action</span><span class="co">:</span>
+    trust<span class="co">:</span> human_required
+    data<span class="co">:</span> pii
+
+<span class="ck">tool</span> <span class="cf">prescribe</span>(id, med) <span class="co">-></span> <span class="ct">Order</span> <span class="cd">dangerous</span>
+
+<span class="cd">@trust(human_required)</span>
+<span class="ck">agent</span> <span class="cf">triage</span>(p) <span class="co">-></span> <span class="ct">Assessment</span><span class="co">:</span>
+    r <span class="co">=</span> <span class="cf">assess</span>(p)
+    <span class="ck">if</span> r.urgency <span class="co">></span> <span class="cn">0.9</span><span class="co">:</span>
+        <span class="cd">approve</span> <span class="ct">Emergency</span>(p.id)
+        <span class="cf">prescribe</span>(p.id, r.med)
+    <span class="ck">return</span> r</pre></div>
+    </div>
+
+    <div class="ex-card">
+      <div><div class="ex-domain">Support + RAG</div><h3>Grounded support</h3><p>The compiler verifies grounding and that citations trace back to sources.</p><div class="sn"><span>Grounded&lt;T&gt;</span> + <span>cites strictly</span></div></div>
+      <div class="cp"><div class="cph"><span class="cpht">support.cor</span><span class="cphf">rag</span></div><pre><span class="ck">tool</span> <span class="cf">search</span>(q) <span class="co">-></span> <span class="ct">Grounded</span><span class="co">&lt;</span><span class="ct">String</span><span class="co">&gt;</span>
+
+<span class="ck">prompt</span> <span class="cf">answer</span>(q, ctx<span class="co">:</span> <span class="ct">Grounded</span>) <span class="co">-></span> <span class="ct">Grounded</span><span class="co">:</span>
+    <span class="cg">cites</span> ctx <span class="cg">strictly</span>
+    <span class="cs">"""Answer {q} using ONLY: {ctx}"""</span>
+
+<span class="ck">agent</span> <span class="cf">support</span>(q) <span class="co">-></span> <span class="ct">Grounded</span><span class="co">:</span>
+    <span class="ck">return</span> <span class="cf">answer</span>(q, <span class="cf">search</span>(q))</pre></div>
+    </div>
+
+    <div class="ex-card">
+      <div><div class="ex-domain">DevOps</div><h3>Deploy agent</h3><p>Both deploy and rollback are dangerous with irreversible effects.</p><div class="sn"><span>dangerous</span> + <span>reversible: false</span></div></div>
+      <div class="cp"><div class="cph"><span class="cpht">deploy.cor</span><span class="cphf">devops</span></div><pre><span class="ck">tool</span> <span class="cf">deploy</span>(sha) <span class="co">-></span> <span class="ct">Status</span> <span class="cd">dangerous</span>
+<span class="ck">tool</span> <span class="cf">rollback</span>(env) <span class="co">-></span> <span class="ct">Status</span> <span class="cd">dangerous</span>
+
+<span class="cd">@trust(human_required)</span>
+<span class="ck">agent</span> <span class="cf">deploy_agent</span>(c) <span class="co">-></span> <span class="ct">Status</span><span class="co">:</span>
+    <span class="ck">if</span> <span class="cf">review</span>(c).safe<span class="co">:</span>
+        <span class="cd">approve</span> <span class="ct">Deploy</span>(c.sha)
+        <span class="ck">return</span> <span class="cf">deploy</span>(c.sha)
+    <span class="cd">approve</span> <span class="ct">Rollback</span>(<span class="cs">"prod"</span>)
+    <span class="ck">return</span> <span class="cf">rollback</span>(<span class="cs">"prod"</span>)</pre></div>
+    </div>
+
+    <div class="section-cta section-cta-dark rv" style="max-width:var(--max);margin:48px auto 0;padding:0 48px">
+      <a href="https://github.com/corvid-lang/corvid" target="_blank">GitHub</a>
+      <a href="https://github.com/corvid-lang/corvid/discussions" target="_blank">Join the discussion</a>
+      <code onclick="navigator.clipboard.writeText('curl -sSf https://install.corvid-lang.org | sh');this.textContent='Copied!';setTimeout(()=>{this.textContent='curl -sSf https://install.corvid-lang.org | sh'},1500)">curl -sSf https://install.corvid-lang.org | sh</code>
+    </div>
+  </div>
+  <div style="padding-bottom:80px"></div>
+</section>
+
+<!-- COMMUNITY -->
+<section class="community">
+  <div class="si">
+    <div class="rv"><div class="eyebrow">Community</div><h2 class="section-title">For the ones who care what their code does after they ship it.</h2></div>
+    <div class="rv">
+      <p class="body-text">Corvid is open source, built in public, shaped by engineers who've stayed up too late debugging an agent that did something it shouldn't have.</p>
+      <p class="body-text">We're early. The community is small. That's the point. You're not joining a crowd. You're shaping a foundation.</p>
+      <p class="id">If you've ever looked at your agent code and thought "I can't actually prove this is safe", you're who we built this for.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="get-started"><div class="cta-in rv">
+  <h2>The next era of software needs a new foundation.</h2>
+  <p class="cta-s">We're building it. Come build with us.</p>
+  <a href="https://github.com/corvid-lang/corvid" class="cta-b">Build with Corvid</a>
+  <div class="ic"><code onclick="navigator.clipboard.writeText('curl -sSf https://install.corvid-lang.org | sh');this.textContent='Copied!';setTimeout(()=>{this.textContent='curl -sSf https://install.corvid-lang.org | sh'},1500)">curl -sSf https://install.corvid-lang.org | sh</code></div>
+  <div style="margin-top:32px;display:flex;justify-content:center;gap:24px">
+    <a href="https://github.com/corvid-lang/corvid/discussions" target="_blank" style="font-family:var(--mono);font-size:12px;color:var(--ink-t);text-decoration:none;letter-spacing:.04em;transition:color .3s">Join the discussion</a>
+    <a href="https://github.com/corvid-lang/corvid/blob/main/docs/effects-spec/02-composition-algebra.md" target="_blank" style="font-family:var(--mono);font-size:12px;color:var(--ink-t);text-decoration:none;letter-spacing:.04em;transition:color .3s">Read the effect spec</a>
+  </div>
+</div></section>
+
+<footer><div class="fi"><div class="ft">Corvid. MIT / Apache-2.0</div><div class="ft"><a href="https://github.com/corvid-lang/corvid">Source</a> · <a href="https://github.com/corvid-lang/corvid/blob/main/docs/effects-spec/02-composition-algebra.md">Effect Spec</a> · © 2026</div></div></footer>
+
+<script>
+
+// Observer for fade-in
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');obs.unobserve(x.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+
+// Terminal boot sequence
+const stObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){const lines=x.target.querySelectorAll('.st-line');lines.forEach((l,i)=>{setTimeout(()=>l.classList.add('v'),i*120)});stObs.unobserve(x.target)}})},{threshold:.2});
+const stEl=document.getElementById('st-term');
+if(stEl)stObs.observe(stEl);
+
+// Nav dark/light
+const nav=document.getElementById('nav');
+const darkEls=document.querySelectorAll('.hero,.solution,.examples');
+
+function onScroll(){
+  const s=window.scrollY;
+  nav.classList.toggle('scrolled',s>40);
+  let dark=false;
+  darkEls.forEach(d=>{const r=d.getBoundingClientRect();if(r.top<64&&r.bottom>0)dark=true});
+  nav.classList.toggle('dark',dark);
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('load',onScroll);
+
+// (stacking cards use CSS sticky only, no JS needed)
+</script>
+</body>
+</html>
