@@ -40,7 +40,7 @@ export default defineConfig({
         {
           tag: 'script',
           content:
-            "(()=>{try{if(!localStorage.getItem('starlight-theme')){localStorage.setItem('starlight-theme','light');document.documentElement.dataset.theme='light';}}catch(_){}})();",
+            "(()=>{try{if(localStorage.getItem('starlight-theme')===null){localStorage.setItem('starlight-theme','light');document.documentElement.dataset.theme='light';}}catch(_){}})();",
         },
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' } },
