@@ -23,6 +23,7 @@
   --sl-font: var(--corvid-sans);
   --sl-font-system: var(--corvid-sans);
   --sl-font-mono: var(--corvid-mono);
+  --sl-text-base: 16px;
   --sl-color-text: var(--corvid-ink);
   --sl-color-text-accent: var(--corvid-red);
   --sl-color-text-invert: var(--corvid-paper);
@@ -44,7 +45,8 @@
   --sl-color-gray-5: #aaa;
   --sl-color-gray-6: var(--corvid-border);
   --sl-color-gray-7: var(--corvid-paper-w);
-  --sl-content-width: 64rem;
+  --sl-content-width: 48rem;       /* tighter for prose readability (~720px) */
+  --sl-sidebar-width: 19rem;
 }
 
 :root[data-theme='dark'] {
@@ -71,41 +73,209 @@
   --sl-color-gray-7: rgba(255, 255, 255, 0.06);
 }
 
-/* Headings in serif to match landing's section titles. */
+/* ── Body / prose rhythm ─────────────────────────────────────────── */
+
+.sl-markdown-content {
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+.sl-markdown-content > * + * {
+  margin-top: 1.25em;
+}
+
+/* Headings in serif to match landing's editorial feel. */
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
 .content-panel h1,
 .content-panel h2 {
   font-family: var(--corvid-serif);
   font-weight: 400;
   letter-spacing: -0.02em;
+  color: var(--sl-color-text);
 }
 
-.sl-markdown-content h1 { line-height: 1.15; }
-.sl-markdown-content h2 { margin-top: 2.4em; }
-
-/* Body copy — slightly looser line-height to mirror the landing. */
-.sl-markdown-content {
-  line-height: 1.75;
+.sl-markdown-content h1 {
+  font-size: clamp(34px, 4vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.4em;
 }
 
-/* Inline code — match landing's "code as small monospace token" vibe. */
+.sl-markdown-content h2 {
+  font-size: clamp(24px, 2.8vw, 30px);
+  line-height: 1.2;
+  margin-top: 2.6em;
+  margin-bottom: 0.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content h3 {
+  font-size: 22px;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.3em;
+}
+
+.sl-markdown-content h4 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 1.6em;
+}
+
+/* First H1 sits flush with the page top — Starlight already inserts the
+   frontmatter title above the markdown, so the markdown's own H1 (if any)
+   needs less top margin. */
+.sl-markdown-content > h1:first-child {
+  margin-top: 0;
+}
+
+/* Lead paragraph after the first H1: bigger, lighter — feels like an intro. */
+.sl-markdown-content > h1:first-child + p {
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--sl-color-gray-2);
+  margin-bottom: 2em;
+}
+
+/* ── Links ───────────────────────────────────────────────────────── */
+
+.sl-markdown-content a:not(.sl-anchor-link, .not-content) {
+  color: var(--sl-color-text-accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--sl-color-accent-low);
+  transition: border-color 0.2s ease;
+}
+.sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
+  border-bottom-color: var(--sl-color-text-accent);
+}
+
+/* ── Inline code ─────────────────────────────────────────────────── */
+
 .sl-markdown-content :not(pre) > code {
   font-family: var(--corvid-mono);
-  font-size: 0.92em;
+  font-size: 0.88em;
   padding: 0.1em 0.4em;
   border-radius: 3px;
   background: var(--sl-color-bg-inline-code);
   border: 1px solid var(--sl-color-hairline);
+  word-break: break-word;
 }
 
-/* Site title in the header — keep serif so the wordmark feels editorial. */
+/* ── Code blocks (Expressive Code frames) ────────────────────────── */
+
+.expressive-code {
+  margin: 1.6em 0;
+}
+
+.expressive-code .frame {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.expressive-code .frame pre {
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+/* Header bar (filename / language tag) feels editorial. */
+.expressive-code .frame .header {
+  font-family: var(--corvid-mono);
+  letter-spacing: 0.02em;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+/* ── Blockquotes — pull out a serif italic, red rule on the left. */
+
+.sl-markdown-content blockquote {
+  font-family: var(--corvid-serif);
+  font-style: italic;
+  font-size: 1.05em;
+  color: var(--sl-color-gray-2);
+  border-left: 3px solid var(--sl-color-accent);
+  padding: 0.2em 0 0.2em 1.2em;
+  margin-left: 0;
+}
+
+/* ── Asides / callouts (:::tip / :::note / :::caution / :::danger) ── */
+
+.sl-markdown-content .starlight-aside {
+  border-radius: 8px;
+  border-width: 1px;
+  border-left-width: 4px;
+  padding: 1em 1.2em;
+  background: var(--sl-color-bg-inline-code);
+}
+
+.sl-markdown-content .starlight-aside--tip {
+  border-color: var(--corvid-green);
+  background: rgba(90, 138, 82, 0.06);
+}
+:root[data-theme='dark'] .sl-markdown-content .starlight-aside--tip {
+  background: rgba(90, 138, 82, 0.12);
+}
+
+.sl-markdown-content .starlight-aside--caution,
+.sl-markdown-content .starlight-aside--danger {
+  border-color: var(--corvid-red);
+  background: rgba(184, 74, 53, 0.06);
+}
+:root[data-theme='dark'] .sl-markdown-content .starlight-aside--caution,
+:root[data-theme='dark'] .sl-markdown-content .starlight-aside--danger {
+  background: rgba(184, 74, 53, 0.12);
+}
+
+.sl-markdown-content .starlight-aside__title {
+  font-family: var(--corvid-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────── */
+
+.sl-markdown-content table {
+  font-size: 0.95em;
+}
+
+.sl-markdown-content th {
+  font-family: var(--corvid-sans);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid var(--sl-color-hairline);
+}
+
+/* ── Images: rounded corners + subtle border so screenshots look intentional. */
+
+.sl-markdown-content img {
+  border-radius: 6px;
+  border: 1px solid var(--sl-color-hairline);
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Horizontal rules: graphical, not utilitarian. */
+
+.sl-markdown-content hr {
+  border: 0;
+  height: 1px;
+  background: var(--sl-color-hairline);
+  margin: 3em auto;
+  width: 60%;
+}
+
+/* ── Site title (header wordmark) — serif, editorial. */
+
 .site-title {
   font-family: var(--corvid-serif);
   font-weight: 400;
   letter-spacing: -0.01em;
 }
 
-/* Sidebar nav labels — uppercase mono ticks like the landing's eyebrows. */
+/* ── Sidebar — section labels feel like the landing's eyebrow ticks. */
+
 .sidebar-content summary span,
 .sidebar-content > .top-level > li > details > summary > .group-label > span {
   font-family: var(--corvid-mono);
@@ -116,5 +286,35 @@
   color: var(--sl-color-gray-3);
 }
 
-/* Mobile breakpoint check — Starlight's hamburger kicks in <800px, which
-   is fine for the brief's 768px requirement. No override needed. */
+/* Compact, denser sidebar links (default Starlight feels airy). */
+.sidebar-content ul li a {
+  font-size: 13.5px;
+  padding: 0.3em 0.6em;
+}
+.sidebar-content ul li a[aria-current='page'] {
+  font-weight: 600;
+}
+
+/* ── Pagination footer (prev/next) ───────────────────────────────── */
+
+.pagination-links {
+  margin-top: 4em;
+  border-top: 1px solid var(--sl-color-hairline);
+  padding-top: 1.5em;
+}
+
+.pagination-links a {
+  border-radius: 8px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.pagination-links a:hover {
+  border-color: var(--sl-color-accent);
+}
+
+/* ── Print: hide nav chrome, force light tokens. */
+
+@media print {
+  .header, .sidebar, .right-sidebar { display: none !important; }
+  .main-pane { margin: 0 !important; max-width: none !important; }
+}
