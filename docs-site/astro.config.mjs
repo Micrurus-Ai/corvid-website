@@ -34,6 +34,14 @@ export default defineConfig({
       // Injected into <head> directly because Vite strips bare @import url(https://...)
       // statements from bundled CSS.
       head: [
+        // Default to light theme on first visit (matches the landing). Once
+        // a user toggles via Starlight's theme picker, that choice is stored
+        // in localStorage and respected on every subsequent visit.
+        {
+          tag: 'script',
+          content:
+            "(()=>{try{if(!localStorage.getItem('starlight-theme')){localStorage.setItem('starlight-theme','light');document.documentElement.dataset.theme='light';}}catch(_){}})();",
+        },
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
         { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' } },
         {
