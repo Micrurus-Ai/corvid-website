@@ -266,12 +266,18 @@
   width: 60%;
 }
 
-/* ── Site title (header wordmark) — serif, editorial. */
+/* ── Site title (header wordmark) — serif, editorial, ink (NOT accent). */
 
-.site-title {
+.site-title,
+a.site-title,
+.site-title:visited {
   font-family: var(--corvid-serif);
   font-weight: 400;
   letter-spacing: -0.01em;
+  color: var(--sl-color-text);
+}
+.site-title:hover {
+  color: var(--sl-color-text-accent);
 }
 
 /* ── Sidebar — section labels feel like the landing's eyebrow ticks. */
@@ -290,9 +296,42 @@
 .sidebar-content ul li a {
   font-size: 13.5px;
   padding: 0.3em 0.6em;
+  color: var(--sl-color-gray-2);
+}
+.sidebar-content ul li a:hover {
+  color: var(--sl-color-text-accent);
+  background: var(--sl-color-accent-low);
 }
 .sidebar-content ul li a[aria-current='page'] {
   font-weight: 600;
+  color: var(--sl-color-text-accent);
+  background: var(--sl-color-accent-low);
+}
+
+/* ── Right sidebar (TOC) — same palette: ink default, red active/hover. */
+
+.right-sidebar a,
+starlight-toc a {
+  color: var(--sl-color-gray-3);
+}
+.right-sidebar a:hover,
+starlight-toc a:hover {
+  color: var(--sl-color-text-accent);
+}
+.right-sidebar a[aria-current='true'],
+starlight-toc a[aria-current='true'] {
+  color: var(--sl-color-text-accent);
+  font-weight: 500;
+}
+
+/* ── Catch-all: any anchor inside Starlight chrome (header / nav / footer)
+   that doesn't have an explicit color picks up ink, not browser-default blue. */
+
+.header a:not(.site-title),
+.sidebar a,
+.right-sidebar a,
+.pagination-links a {
+  color: inherit;
 }
 
 /* ── Pagination footer (prev/next) ───────────────────────────────── */
