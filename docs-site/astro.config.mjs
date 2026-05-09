@@ -29,7 +29,22 @@ export default defineConfig({
       social: { github: LANG_REPO },
       editLink: { baseUrl: EDIT_BASE },
       lastUpdated: true,
-      customCss: ['./src/styles/corvid.css', './src/styles/fonts.css'],
+      // Load the same Google Fonts the landing page uses so docs typography
+      // matches exactly (Source Serif 4, Source Sans 3, JetBrains Mono).
+      // Injected into <head> directly because Vite strips bare @import url(https://...)
+      // statements from bundled CSS.
+      head: [
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' } },
+        { tag: 'link', attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' } },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'stylesheet',
+            href: 'https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap',
+          },
+        },
+      ],
+      customCss: ['./src/styles/corvid.css'],
       expressiveCode: {
         themes: ['github-light', 'github-dark'],
         shiki: { langs: [corvidGrammar] },
