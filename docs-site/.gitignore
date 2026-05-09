@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.production
+.DS_Store
+
+# Synced from Micrurus-Ai/Corvid-lang at build time. Source of truth lives upstream.
+src/content/docs/
+
+# Local sync cache used by scripts/sync-docs.mjs
+/.corvid-source/

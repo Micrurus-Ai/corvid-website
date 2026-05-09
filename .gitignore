@@ -1,0 +1,13 @@
+# Build artifact for Firebase Hosting (assembled at build time).
+public/
+
+# Local sync cache for the upstream Corvid-lang docs.
+.corvid-source/
+
+# Per-developer Firebase auth state.
+.firebase/
+
+# Node tooling.
+node_modules/
+.DS_Store
+*.log

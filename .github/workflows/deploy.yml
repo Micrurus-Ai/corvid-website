@@ -1,0 +1,65 @@
+name: Deploy site to Firebase Hosting
+
+on:
+  push:
+    branches: [main]
+  # Triggered by a workflow in Micrurus-Ai/Corvid-lang on docs/ changes.
+  # See docs-site/README.md for the upstream dispatch payload format.
+  repository_dispatch:
+    types: [corvid-lang-docs-changed]
+  workflow_dispatch:
+
+# `id-token: write` is required so the runner can mint a GitHub OIDC token
+# that GCP's STS exchanges for a short-lived service account access token
+# (Workload Identity Federation, no JSON key).
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout website repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install docs-site dependencies
+        working-directory: docs-site
+        run: npm ci
+
+      - name: Sync docs from Micrurus-Ai/Corvid-lang
+        env:
+          # Optional: only needed if Corvid-lang becomes private. Public repos
+          # don't need a token.
+          CORVID_LANG_TOKEN: ${{ secrets.CORVID_LANG_TOKEN }}
+        run: node scripts/sync-docs.mjs
+
+      - name: Build Starlight
+        working-directory: docs-site
+        run: npm run build
+
+      - name: Assemble public/ (landing + docs)
+        run: node scripts/assemble-public.mjs
+
+      - name: Authenticate to Google Cloud (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/616744154906/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'gha-deploy@corvid-website.iam.gserviceaccount.com'
+
+      - name: Deploy to Firebase Hosting
+        run: npx --yes firebase-tools@^15 deploy --only hosting --project=corvid-website --non-interactive

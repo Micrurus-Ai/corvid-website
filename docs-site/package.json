@@ -1,0 +1,24 @@
+{
+  "name": "corvid-docs-site",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Astro Starlight build that renders Micrurus-Ai/Corvid-lang's docs/ tree at /docs on corvid-lang.org.",
+  "scripts": {
+    "sync": "node ../scripts/sync-docs.mjs",
+    "predev": "node ../scripts/sync-docs.mjs",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "prebuild": "node ../scripts/sync-docs.mjs",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/starlight": "^0.32.0",
+    "astro": "^5.7.0",
+    "sharp": "^0.34.0",
+    "typescript": "^5.7.0"
+  }
+}

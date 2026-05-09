@@ -1,0 +1,120 @@
+/*
+ * Corvid docs theme — maps Starlight CSS variables to the landing page's
+ * design tokens (defined in the repo-root index.html `:root` block).
+ * Source-of-truth tokens: --ink #0a0a0a / --paper #fafaf7 / --red #b84a35 /
+ * --green #5a8a52 / Source Serif 4 (headings) / Source Sans 3 (body) /
+ * JetBrains Mono (code).
+ */
+
+:root {
+  --corvid-ink: #0a0a0a;
+  --corvid-ink-s: #2a2a2a;
+  --corvid-ink-t: #666;
+  --corvid-paper: #fafaf7;
+  --corvid-paper-w: #f0efea;
+  --corvid-border: #ddd;
+  --corvid-red: #b84a35;
+  --corvid-green: #5a8a52;
+  --corvid-serif: 'Source Serif 4', Georgia, serif;
+  --corvid-sans: 'Source Sans 3', -apple-system, sans-serif;
+  --corvid-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Starlight theme tokens — light. */
+  --sl-font: var(--corvid-sans);
+  --sl-font-system: var(--corvid-sans);
+  --sl-font-mono: var(--corvid-mono);
+  --sl-color-text: var(--corvid-ink);
+  --sl-color-text-accent: var(--corvid-red);
+  --sl-color-text-invert: var(--corvid-paper);
+  --sl-color-bg: var(--corvid-paper);
+  --sl-color-bg-nav: var(--corvid-paper);
+  --sl-color-bg-sidebar: var(--corvid-paper);
+  --sl-color-bg-inline-code: var(--corvid-paper-w);
+  --sl-color-hairline: var(--corvid-border);
+  --sl-color-hairline-light: var(--corvid-border);
+  --sl-color-hairline-shade: var(--corvid-border);
+  --sl-color-accent: var(--corvid-red);
+  --sl-color-accent-low: rgba(184, 74, 53, 0.12);
+  --sl-color-accent-high: var(--corvid-red);
+  --sl-color-white: var(--corvid-paper);
+  --sl-color-gray-1: var(--corvid-ink-s);
+  --sl-color-gray-2: #4a4a4a;
+  --sl-color-gray-3: var(--corvid-ink-t);
+  --sl-color-gray-4: #888;
+  --sl-color-gray-5: #aaa;
+  --sl-color-gray-6: var(--corvid-border);
+  --sl-color-gray-7: var(--corvid-paper-w);
+  --sl-content-width: 64rem;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-text: var(--corvid-paper);
+  --sl-color-text-accent: #e07a65;
+  --sl-color-text-invert: var(--corvid-ink);
+  --sl-color-bg: var(--corvid-ink);
+  --sl-color-bg-nav: #050505;
+  --sl-color-bg-sidebar: #050505;
+  --sl-color-bg-inline-code: rgba(255, 255, 255, 0.06);
+  --sl-color-hairline: rgba(255, 255, 255, 0.08);
+  --sl-color-hairline-light: rgba(255, 255, 255, 0.05);
+  --sl-color-hairline-shade: rgba(255, 255, 255, 0.04);
+  --sl-color-accent: #e07a65;
+  --sl-color-accent-low: rgba(224, 122, 101, 0.18);
+  --sl-color-accent-high: #f0a294;
+  --sl-color-white: var(--corvid-paper);
+  --sl-color-gray-1: rgba(255, 255, 255, 0.92);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.78);
+  --sl-color-gray-3: rgba(255, 255, 255, 0.55);
+  --sl-color-gray-4: rgba(255, 255, 255, 0.4);
+  --sl-color-gray-5: rgba(255, 255, 255, 0.25);
+  --sl-color-gray-6: rgba(255, 255, 255, 0.12);
+  --sl-color-gray-7: rgba(255, 255, 255, 0.06);
+}
+
+/* Headings in serif to match landing's section titles. */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
+.content-panel h1,
+.content-panel h2 {
+  font-family: var(--corvid-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.sl-markdown-content h1 { line-height: 1.15; }
+.sl-markdown-content h2 { margin-top: 2.4em; }
+
+/* Body copy — slightly looser line-height to mirror the landing. */
+.sl-markdown-content {
+  line-height: 1.75;
+}
+
+/* Inline code — match landing's "code as small monospace token" vibe. */
+.sl-markdown-content :not(pre) > code {
+  font-family: var(--corvid-mono);
+  font-size: 0.92em;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline);
+}
+
+/* Site title in the header — keep serif so the wordmark feels editorial. */
+.site-title {
+  font-family: var(--corvid-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Sidebar nav labels — uppercase mono ticks like the landing's eyebrows. */
+.sidebar-content summary span,
+.sidebar-content > .top-level > li > details > summary > .group-label > span {
+  font-family: var(--corvid-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+/* Mobile breakpoint check — Starlight's hamburger kicks in <800px, which
+   is fine for the brief's 768px requirement. No override needed. */

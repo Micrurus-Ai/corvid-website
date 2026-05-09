@@ -1,0 +1,178 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Corvid",
+  "scopeName": "source.corvid",
+  "fileTypes": ["cv", "corvid"],
+  "patterns": [
+    { "include": "#doc-comments" },
+    { "include": "#comments" },
+    { "include": "#triple-strings" },
+    { "include": "#strings" },
+    { "include": "#money" },
+    { "include": "#numbers" },
+    { "include": "#approve-action" },
+    { "include": "#annotations" },
+    { "include": "#constants" },
+    { "include": "#control-keywords" },
+    { "include": "#declaration-keywords" },
+    { "include": "#operator-keywords" },
+    { "include": "#builtin-types" },
+    { "include": "#type-names" },
+    { "include": "#function-calls" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "doc-comments": {
+      "patterns": [
+        {
+          "name": "comment.line.documentation.corvid",
+          "match": "#:.*$"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.corvid",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "triple-strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.triple.corvid",
+          "begin": "\"\"\"",
+          "end": "\"\"\""
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.corvid",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.corvid",
+              "match": "\\\\([nrt0\"\\\\])"
+            }
+          ]
+        }
+      ]
+    },
+    "money": {
+      "patterns": [
+        {
+          "name": "constant.numeric.money.corvid",
+          "match": "\\$\\d+(?:\\.\\d+)?"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.corvid",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.corvid",
+          "match": "\\b\\d+\\.\\d+(?:[eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.corvid",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "approve-action": {
+      "patterns": [
+        {
+          "match": "\\b(approve)\\s+([A-Z][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.approve.corvid" },
+            "2": { "name": "entity.name.function.approve-action.corvid" }
+          }
+        }
+      ]
+    },
+    "annotations": {
+      "patterns": [
+        {
+          "name": "meta.annotation.corvid",
+          "match": "@[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*",
+          "captures": {
+            "0": { "name": "entity.name.tag.annotation.corvid" }
+          }
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.corvid",
+          "match": "\\b(true|false|Nothing)\\b"
+        }
+      ]
+    },
+    "control-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.corvid",
+          "match": "\\b(if|else|for|in|while|return|yield|break|continue|pass|match|try|on|error|retry|times|backoff|linear|exponential|when|await_approval)\\b"
+        }
+      ]
+    },
+    "declaration-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.corvid",
+          "match": "\\b(agent|tool|prompt|effect|type|struct|fn|let|import|as|public|package|pub|extern|extend|server|route|schedule|zone|eval|test|fixture|mock|model|requires|replay|session|memory|approve|progressive|below|rollout|ensemble|vote|adversarial|propose|challenge|adjudicate)\\b"
+        }
+      ]
+    },
+    "operator-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.operator.word.corvid",
+          "match": "\\b(and|or|not|dangerous|uses|assert|assert_snapshot)\\b"
+        }
+      ]
+    },
+    "builtin-types": {
+      "patterns": [
+        {
+          "name": "support.type.builtin.corvid",
+          "match": "\\b(Int|Float|Bool|String|Unit|List|Map|Option|Result|Grounded)\\b"
+        }
+      ]
+    },
+    "type-names": {
+      "patterns": [
+        {
+          "name": "entity.name.type.corvid",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "function-calls": {
+      "patterns": [
+        {
+          "match": "\\b([a-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.corvid" }
+          }
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.corvid",
+          "match": "->|\\+=|-=|==|!=|<=|>=|[+\\-*/%<>=?.|]"
+        }
+      ]
+    }
+  }
+}
