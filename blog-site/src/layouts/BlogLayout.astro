@@ -1,0 +1,89 @@
+---
+/**
+ * BlogLayout: base shell for /blog index and per-post pages.
+ *
+ * Matches the landing's typography exactly (Source Serif 4 for headings,
+ * Source Sans 3 for body, JetBrains Mono for code). Nav header mirrors
+ * the docs site's SiteTitle pattern: wordmark links to /, "Blog" eyebrow
+ * stays in section.
+ */
+import '../styles/blog.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+  pubDate?: Date;
+  ogImage?: string;
+}
+
+const { title, description, canonical, pubDate, ogImage } = Astro.props;
+const siteTitle = title.endsWith('Corvid Blog') ? title : `${title} — Corvid Blog`;
+const canonicalUrl = canonical ?? Astro.url.href;
+const description_ = description ?? 'Posts from the Corvid team — a programming language where dangerous AI actions either compile with a proof or do not compile at all.';
+const ogImage_ = ogImage ?? 'https://corvid-lang.org/social/og-cover.png';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{siteTitle}</title>
+  <meta name="description" content={description_} />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="canonical" href={canonicalUrl} />
+
+  <link rel="icon" type="image/svg+xml" href="/logos/corvid-mark.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/social/favicon-192.png" />
+  <link rel="apple-touch-icon" href="/social/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  />
+
+  <meta property="og:type" content={pubDate ? 'article' : 'website'} />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:title" content={siteTitle} />
+  <meta property="og:description" content={description_} />
+  <meta property="og:image" content={ogImage_} />
+  <meta property="og:site_name" content="Corvid" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={siteTitle} />
+  <meta name="twitter:description" content={description_} />
+  <meta name="twitter:image" content={ogImage_} />
+
+  <link rel="alternate" type="application/rss+xml" title="Corvid Blog" href="/blog/rss.xml" />
+</head>
+<body>
+  <nav class="blog-nav">
+    <a href="/" class="brand" aria-label="Corvid — back to home">
+      <img src="/logos/corvid-mark.svg" alt="" width="32" height="32" />
+      <span class="wordmark">Corvid</span>
+      <span class="sep" aria-hidden="true">/</span>
+      <span class="section-label">Blog</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/docs">Docs</a></li>
+      <li><a href="https://github.com/Micrurus-Ai/Corvid-lang" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer>
+    Corvid. MIT / Apache-2.0
+    <span aria-hidden="true">·</span>
+    <a href="/">Home</a>
+    <a href="/docs">Docs</a>
+    <a href="/blog/rss.xml">RSS</a>
+    <a href="https://github.com/Micrurus-Ai/Corvid-lang" target="_blank" rel="noopener">Source</a>
+    <span aria-hidden="true">· © 2026</span>
+  </footer>
+</body>
+</html>

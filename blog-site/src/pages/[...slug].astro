@@ -1,0 +1,55 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogLayout from '../layouts/BlogLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).filter((p) => !p.data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+function readingTime(body: string | undefined): number {
+  if (!body) return 1;
+  const words = body.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 225));
+}
+
+const minutes = readingTime(post.body);
+const canonical = `https://corvid-lang.org/blog/${post.id}`;
+---
+<BlogLayout
+  title={post.data.title}
+  description={post.data.description}
+  canonical={canonical}
+  pubDate={post.data.pubDate}
+  ogImage={post.data.heroImage}
+>
+  <article>
+    <header class="post-header">
+      <div class="eyebrow">
+        <time datetime={post.data.pubDate.toISOString()}>{dateFmt.format(post.data.pubDate)}</time>
+        <span aria-hidden="true"> · </span>
+        <span>{minutes} min read</span>
+        <span aria-hidden="true"> · </span>
+        <span>{post.data.author}</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      <p class="lede">{post.data.description}</p>
+    </header>
+
+    <div class="post-body">
+      <Content />
+    </div>
+  </article>
+</BlogLayout>

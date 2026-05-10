@@ -3,12 +3,13 @@
  * assemble-public.mjs
  *
  * Builds the Firebase Hosting deploy artifact at ./public by combining:
- *   - The marketing landing (index.html, assets/, logos/, social/) at /
+ *   - The marketing landing + SEO surface at /
  *   - The Starlight build output (docs-site/dist/) at /docs/*
+ *   - The blog Astro build output (blog-site/dist/) at /blog/*
  *
- * Astro is configured with `base: '/docs'`, so the dist tree's internal asset
- * URLs already point at /docs/_astro/..., /docs/book/..., etc. We just copy
- * dist/* into public/docs/* and the URLs line up with what Firebase serves.
+ * Both Astro projects set their own base path (`/docs` and `/blog`), so
+ * the dist trees' internal asset URLs already point at the right roots.
+ * We just copy each dist into its mount point under public/.
  *
  * Idempotent: clears ./public before assembling.
  */
@@ -20,7 +21,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 const PUBLIC_DIR = resolve(REPO_ROOT, 'public');
-const DIST_DIR = resolve(REPO_ROOT, 'docs-site/dist');
+const DOCS_DIST = resolve(REPO_ROOT, 'docs-site/dist');
+const BLOG_DIST = resolve(REPO_ROOT, 'blog-site/dist');
 
 // Top-level files/dirs that make up the marketing landing + SEO surface.
 const LANDING_ENTRIES = [
@@ -47,9 +49,9 @@ function copyRecursive(src, dst) {
 }
 
 function main() {
-  if (!existsSync(DIST_DIR)) {
+  if (!existsSync(DOCS_DIST)) {
     throw new Error(
-      `Starlight build output not found at ${DIST_DIR}. Run \`npm --prefix docs-site run build\` first.`,
+      `docs-site build output not found at ${DOCS_DIST}. Run \`npm --prefix docs-site run build\` first.`,
     );
   }
 
@@ -69,10 +71,20 @@ function main() {
     copyRecursive(src, join(PUBLIC_DIR, entry));
   }
 
-  // 2. Copy the Starlight build into /docs/.
-  copyRecursive(DIST_DIR, join(PUBLIC_DIR, 'docs'));
+  // 2. Copy the docs site into /docs/.
+  copyRecursive(DOCS_DIST, join(PUBLIC_DIR, 'docs'));
+  console.log(`[assemble-public] mounted docs-site/dist -> public/docs/`);
 
-  console.log(`[assemble-public] public/ assembled (landing + docs/)`);
+  // 3. Copy the blog site into /blog/, if it was built.
+  // The blog build is optional during local dev; CI always builds it.
+  if (existsSync(BLOG_DIST)) {
+    copyRecursive(BLOG_DIST, join(PUBLIC_DIR, 'blog'));
+    console.log(`[assemble-public] mounted blog-site/dist -> public/blog/`);
+  } else {
+    console.warn(`[assemble-public] WARNING: blog-site/dist not found — skipping /blog/`);
+  }
+
+  console.log(`[assemble-public] public/ assembled`);
 }
 
 main();

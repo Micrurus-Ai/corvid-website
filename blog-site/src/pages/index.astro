@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+import BlogLayout from '../layouts/BlogLayout.astro';
+
+// Filter out drafts; sort newest first.
+const posts = (await getCollection('blog'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const dateFmt = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+
+// ~225 words/min for English prose. Quick estimate from raw body length.
+function readingTime(body: string | undefined): number {
+  if (!body) return 1;
+  const words = body.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 225));
+}
+---
+<BlogLayout
+  title="Corvid Blog"
+  description="Posts from the Corvid team — a programming language where dangerous AI actions either compile with a proof or do not compile at all."
+  canonical="https://corvid-lang.org/blog"
+>
+  <header class="index-header">
+    <h1>Corvid Blog</h1>
+    <p>Notes from the team building a language where dangerous AI actions either compile with a proof or do not compile at all.</p>
+  </header>
+
+  {posts.length === 0 ? (
+    <p style="text-align:center; color: var(--ink-t); font-style: italic">No posts yet.</p>
+  ) : (
+    <ul class="post-list">
+      {posts.map((post) => (
+        <li class="post-list-item">
+          <a href={`/blog/${post.id}`}>
+            <div class="meta">
+              <time datetime={post.data.pubDate.toISOString()}>{dateFmt.format(post.data.pubDate)}</time>
+              <span aria-hidden="true"> · </span>
+              <span>{readingTime(post.body)} min read</span>
+              <span aria-hidden="true"> · </span>
+              <span>{post.data.author}</span>
+            </div>
+            <h2>{post.data.title}</h2>
+            <p>{post.data.description}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</BlogLayout>

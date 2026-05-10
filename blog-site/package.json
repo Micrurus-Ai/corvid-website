@@ -1,0 +1,21 @@
+{
+  "name": "corvid-blog-site",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Astro project building the /blog section of corvid-lang.org (Corvid v1.0 launch post, future posts).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/rss": "^4.0.0",
+    "astro": "^5.7.0",
+    "sharp": "^0.34.0",
+    "typescript": "^5.7.0"
+  }
+}
