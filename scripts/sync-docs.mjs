@@ -167,6 +167,20 @@ function rewriteLinkTarget(target, fileDir) {
     return `${GITHUB_BASE}${webPath}${anchorSuffix}`;
   }
 
+  // Non-markdown extension (e.g. `.cor`, `.rs`, `.toml`) → source code, not
+  // a docs page. Point at GitHub so it renders in the source viewer.
+  const extMatch = webPath.match(/\.([a-z0-9]+)$/i);
+  if (extMatch && !/^mdx?$/i.test(extMatch[1])) {
+    return `${GITHUB_BASE}docs/${webPath}${anchorSuffix}`;
+  }
+
+  // Existence check: if the upstream file/dir doesn't exist, the link is a
+  // content typo. Fall back to GitHub blob view so the reader at least
+  // lands on something real instead of a 404 in the docs site.
+  if (!resolvedExistsInDocs(webPath)) {
+    return `${GITHUB_BASE}docs/${webPath}${anchorSuffix}`;
+  }
+
   // In-docs path: strip .md/.mdx, collapse README/index to its directory.
   webPath = webPath.replace(/\.mdx?$/i, '');
   webPath = webPath.replace(/(^|\/)README$/i, '$1');
@@ -175,6 +189,21 @@ function rewriteLinkTarget(target, fileDir) {
 
   if (!webPath) return `/docs${anchorSuffix}`;
   return `/docs/${webPath}${anchorSuffix}`;
+}
+
+// Check whether a path (relative to docs/ root) corresponds to a real file
+// or directory in the upstream tree. We consider the path real if any of:
+//   - the exact file exists
+//   - <path>.md / <path>.mdx exists (extension stripped in author's link)
+//   - <path>/README.md or <path>/index.md exists (directory landing)
+function resolvedExistsInDocs(webPath) {
+  const base = join(SOURCE_DOCS, webPath);
+  if (existsSync(base)) return true;
+  if (existsSync(base + '.md')) return true;
+  if (existsSync(base + '.mdx')) return true;
+  if (existsSync(join(base, 'README.md'))) return true;
+  if (existsSync(join(base, 'index.md'))) return true;
+  return false;
 }
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
