@@ -22,7 +22,9 @@
 
 /* Starlight scopes its light-theme tokens at :root[data-theme=light] (one
    class higher specificity than plain :root), so my overrides MUST also
-   match that selector or Starlight's purple accent wins. Mirror it. */
+   match that selector. Brand rule: there is NO accent color on Corvid.
+   Red is reserved for compile-fail / danger; green for compile-pass / tip.
+   "Active / you are here" states darken to full ink and use paper-warm bg. */
 :root,
 :root[data-theme='light'] {
   --sl-font: var(--corvid-sans);
@@ -30,7 +32,7 @@
   --sl-font-mono: var(--corvid-mono);
   --sl-text-base: 16px;
   --sl-color-text: var(--corvid-ink);
-  --sl-color-text-accent: var(--corvid-red);
+  --sl-color-text-accent: var(--corvid-ink);              /* was red — wrong */
   --sl-color-text-invert: var(--corvid-paper);
   --sl-color-bg: var(--corvid-paper);
   --sl-color-bg-nav: var(--corvid-paper);
@@ -39,9 +41,9 @@
   --sl-color-hairline: var(--corvid-border);
   --sl-color-hairline-light: var(--corvid-border);
   --sl-color-hairline-shade: var(--corvid-border);
-  --sl-color-accent: var(--corvid-red);
-  --sl-color-accent-low: rgba(184, 74, 53, 0.12);
-  --sl-color-accent-high: var(--corvid-red);
+  --sl-color-accent: var(--corvid-ink);                   /* ink, not red */
+  --sl-color-accent-low: var(--corvid-paper-w);           /* paper-warm tint */
+  --sl-color-accent-high: var(--corvid-ink);
   --sl-color-white: var(--corvid-paper);
   --sl-color-gray-1: var(--corvid-ink-s);
   --sl-color-gray-2: #4a4a4a;
@@ -56,7 +58,7 @@
 
 :root[data-theme='dark'] {
   --sl-color-text: var(--corvid-paper);
-  --sl-color-text-accent: #e07a65;
+  --sl-color-text-accent: var(--corvid-paper);            /* full paper, not red */
   --sl-color-text-invert: var(--corvid-ink);
   --sl-color-bg: var(--corvid-ink);
   --sl-color-bg-nav: #050505;
@@ -65,9 +67,9 @@
   --sl-color-hairline: rgba(255, 255, 255, 0.08);
   --sl-color-hairline-light: rgba(255, 255, 255, 0.05);
   --sl-color-hairline-shade: rgba(255, 255, 255, 0.04);
-  --sl-color-accent: #e07a65;
-  --sl-color-accent-low: rgba(224, 122, 101, 0.18);
-  --sl-color-accent-high: #f0a294;
+  --sl-color-accent: var(--corvid-paper);                 /* paper, not red */
+  --sl-color-accent-low: rgba(255, 255, 255, 0.06);       /* faint paper wash */
+  --sl-color-accent-high: var(--corvid-paper);
   --sl-color-white: var(--corvid-paper);
   --sl-color-gray-1: rgba(255, 255, 255, 0.92);
   --sl-color-gray-2: rgba(255, 255, 255, 0.78);
@@ -159,9 +161,10 @@
   color: #4a4a4a;
   border-bottom-color: #ddd;
 }
+/* Hover darkens to full ink (matches landing's `.ft a:hover` pattern). */
 .sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
-  color: #b84a35;
-  border-bottom-color: #b84a35;
+  color: #0a0a0a;
+  border-bottom-color: #0a0a0a;
 }
 
 /* Headings that are themselves links keep heading color. */
@@ -171,19 +174,18 @@
   border-bottom-color: #ddd;
 }
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a:hover {
-  color: #b84a35;
-  border-bottom-color: #b84a35;
+  border-bottom-color: #0a0a0a;
 }
 
-/* Dark mode overrides for body links — literal rgba (no var) for :visited. */
+/* Dark mode body links — literal rgba (no var) so :visited works. */
 :root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content),
 :root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content):visited {
   color: rgba(255, 255, 255, 0.78);
   border-bottom-color: rgba(255, 255, 255, 0.15);
 }
 :root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
-  color: #e07a65;
-  border-bottom-color: #e07a65;
+  color: #fafaf7;
+  border-bottom-color: #fafaf7;
 }
 
 /* ── Inline code ─────────────────────────────────────────────────── */
