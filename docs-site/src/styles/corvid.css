@@ -18,8 +18,13 @@
   --corvid-serif: 'Source Serif 4', Georgia, serif;
   --corvid-sans: 'Source Sans 3', -apple-system, sans-serif;
   --corvid-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
 
-  /* Starlight theme tokens — light. */
+/* Starlight scopes its light-theme tokens at :root[data-theme=light] (one
+   class higher specificity than plain :root), so my overrides MUST also
+   match that selector or Starlight's purple accent wins. Mirror it. */
+:root,
+:root[data-theme='light'] {
   --sl-font: var(--corvid-sans);
   --sl-font-system: var(--corvid-sans);
   --sl-font-mono: var(--corvid-mono);
