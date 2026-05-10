@@ -140,31 +140,45 @@
 
 /* ── Links ───────────────────────────────────────────────────────────
    Brand rule: body links are subtle ink (NOT red) by default. Red is
-   reserved for compile-fail / "you are here" semantics. Visited links
-   are explicitly styled so the browser default purple can never leak. */
+   reserved for compile-fail / "you are here" semantics. Visited rules
+   use LITERAL hex values because some Chromium versions silently drop
+   var() substitution inside :visited under privacy restrictions. */
 
-.sl-markdown-content a:not(.sl-anchor-link, .not-content),
-.sl-markdown-content a:not(.sl-anchor-link, .not-content):visited {
-  color: var(--sl-color-gray-2);
+.sl-markdown-content a:not(.sl-anchor-link, .not-content) {
+  color: #4a4a4a;
   text-decoration: none;
-  border-bottom: 1px solid var(--sl-color-hairline);
+  border-bottom: 1px solid #ddd;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
+.sl-markdown-content a:not(.sl-anchor-link, .not-content):visited {
+  color: #4a4a4a;
+  border-bottom-color: #ddd;
+}
 .sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
-  color: var(--sl-color-text-accent);
-  border-bottom-color: var(--sl-color-text-accent);
+  color: #b84a35;
+  border-bottom-color: #b84a35;
 }
 
-/* Headings that are themselves links (e.g. inline `[text](href)` inside H2)
-   should keep heading color — the underline alone signals link affordance. */
+/* Headings that are themselves links keep heading color. */
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a,
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a:visited {
   color: inherit;
-  border-bottom-color: var(--sl-color-hairline);
+  border-bottom-color: #ddd;
 }
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a:hover {
-  color: var(--sl-color-text-accent);
-  border-bottom-color: var(--sl-color-text-accent);
+  color: #b84a35;
+  border-bottom-color: #b84a35;
+}
+
+/* Dark mode overrides for body links — literal rgba (no var) for :visited. */
+:root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content),
+:root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content):visited {
+  color: rgba(255, 255, 255, 0.78);
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+:root[data-theme='dark'] .sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
+  color: #e07a65;
+  border-bottom-color: #e07a65;
 }
 
 /* ── Inline code ─────────────────────────────────────────────────── */
