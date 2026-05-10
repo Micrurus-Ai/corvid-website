@@ -74,6 +74,15 @@ export default defineConfig({
             { slug: 'book/03-tutorial-refund-agent' },
           ],
         },
+        {
+          label: 'Cross-site',
+          items: [
+            { label: '← Marketing site', link: '/', attrs: { target: '_self' } },
+            { label: 'Benchmarks', link: '/benchmarks', attrs: { target: '_self' } },
+            { label: 'Blog', link: '/blog', attrs: { target: '_self' } },
+          ],
+          collapsed: true,
+        },
         { label: 'The Book', autogenerate: { directory: 'book' }, collapsed: true },
         { label: 'Guides', autogenerate: { directory: 'guides' } },
         { label: 'Recipes', autogenerate: { directory: 'recipes' } },
