@@ -3,10 +3,13 @@ name: Deploy site to Firebase Hosting
 on:
   push:
     branches: [main]
-  # Triggered by a workflow in Micrurus-Ai/Corvid-lang on docs/ changes.
+  # Triggered by workflows in Micrurus-Ai/Corvid-lang on content changes.
+  # - corvid-lang-docs-changed: docs/** edits rebuild the docs site.
+  # - corvid-lang-benches-changed: benches/** edits rebuild the
+  #   benchmarks page (new RESULTS.md numbers, new dated sessions).
   # See docs-site/README.md for the upstream dispatch payload format.
   repository_dispatch:
-    types: [corvid-lang-docs-changed]
+    types: [corvid-lang-docs-changed, corvid-lang-benches-changed]
   workflow_dispatch:
 
 # `id-token: write` is required so the runner can mint a GitHub OIDC token
@@ -38,6 +41,7 @@ jobs:
           cache-dependency-path: |
             docs-site/package-lock.json
             blog-site/package-lock.json
+            benchmarks-site/package-lock.json
 
       - name: Install docs-site dependencies
         working-directory: docs-site
@@ -45,6 +49,10 @@ jobs:
 
       - name: Install blog-site dependencies
         working-directory: blog-site
+        run: npm ci
+
+      - name: Install benchmarks-site dependencies
+        working-directory: benchmarks-site
         run: npm ci
 
       - name: Sync docs from Micrurus-Ai/Corvid-lang
@@ -62,7 +70,16 @@ jobs:
         working-directory: blog-site
         run: npm run build
 
-      - name: Assemble public/ (landing + docs + blog)
+      - name: Build benchmarks
+        # benchmarks-site's prebuild runs sync-benchmarks.mjs, which
+        # reuses the .corvid-source/ clone that sync-docs already
+        # populated (it does a fast git fetch + reset).
+        env:
+          CORVID_LANG_TOKEN: ${{ secrets.CORVID_LANG_TOKEN }}
+        working-directory: benchmarks-site
+        run: npm run build
+
+      - name: Assemble public/ (landing + docs + blog + benchmarks)
         run: node scripts/assemble-public.mjs
 
       - name: Authenticate to Google Cloud (Workload Identity Federation)
