@@ -10,7 +10,7 @@ Your AI agent issued two refunds for the same customer last quarter. The Python 
 
 ## The five things every AI team is rebuilding
 
-Every team that ships an agent eventually rebuilds the same five things, each in a slightly different way, each missing a piece. A registry of which tool calls require human approval. A way to track which strings came from a verified source versus which came from the model. A per-agent budget that caps cost and latency at the type level. A deterministic replay system for production traces. A model-upgrade diff that catches behavior changes before the new model goes live. We watched five teams build all five, badly. Corvid puts them in the compiler.
+Every team that ships an agent eventually rebuilds the same five things, each in a slightly different way, each missing a piece. A registry of which tool calls require human approval. A way to track which strings came from a verified source versus which came from the model. A per-agent budget that caps cost and latency at the type level. A deterministic replay system for production traces. A model-upgrade diff that catches behavior changes before the new model goes live. We've watched teams rebuild all five. Each rewrite reintroduces a different variant of the same bug class. Corvid puts the five in the compiler.
 
 ## The five-line demo
 
@@ -78,6 +78,6 @@ If you build something with Corvid, we want to see it. [GitHub Discussions](http
 
 The [beta program](/beta) is open. We're looking for twenty developers who want to build something real on Corvid before the v1.0 cut goes wide. Time commitment is about five hours over two weeks. We respond to every issue you file within 48 hours, and we close it either by landing a fix before launch or by writing down why it's out of scope.
 
-Build something dangerous. Watch it refuse to compile. Then ship it anyway, because the compiler proved it's safe.
+Build something dangerous. Watch it refuse to compile. Then ship it, because the compiler proved no path can reach a gated tool call without an approval.
 
 — The Corvid team
