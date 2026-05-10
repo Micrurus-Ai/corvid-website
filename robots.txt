@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://corvid-lang.org/sitemap.xml
+Sitemap: https://corvid-lang.org/docs/sitemap-index.xml

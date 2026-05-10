@@ -22,8 +22,15 @@ const REPO_ROOT = resolve(__dirname, '..');
 const PUBLIC_DIR = resolve(REPO_ROOT, 'public');
 const DIST_DIR = resolve(REPO_ROOT, 'docs-site/dist');
 
-// Top-level files/dirs that make up the marketing landing.
-const LANDING_ENTRIES = ['index.html', 'assets', 'logos', 'social'];
+// Top-level files/dirs that make up the marketing landing + SEO surface.
+const LANDING_ENTRIES = [
+  'index.html',
+  'assets',
+  'logos',
+  'social',
+  'robots.txt',
+  'sitemap.xml',
+];
 
 function copyRecursive(src, dst) {
   if (!existsSync(src)) return;
