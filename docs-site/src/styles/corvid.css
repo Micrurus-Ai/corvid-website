@@ -138,15 +138,32 @@
   margin-bottom: 2em;
 }
 
-/* ── Links ───────────────────────────────────────────────────────── */
+/* ── Links ───────────────────────────────────────────────────────────
+   Brand rule: body links are subtle ink (NOT red) by default. Red is
+   reserved for compile-fail / "you are here" semantics. Visited links
+   are explicitly styled so the browser default purple can never leak. */
 
-.sl-markdown-content a:not(.sl-anchor-link, .not-content) {
-  color: var(--sl-color-text-accent);
+.sl-markdown-content a:not(.sl-anchor-link, .not-content),
+.sl-markdown-content a:not(.sl-anchor-link, .not-content):visited {
+  color: var(--sl-color-gray-2);
   text-decoration: none;
-  border-bottom: 1px solid var(--sl-color-accent-low);
-  transition: border-color 0.2s ease;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 .sl-markdown-content a:not(.sl-anchor-link, .not-content):hover {
+  color: var(--sl-color-text-accent);
+  border-bottom-color: var(--sl-color-text-accent);
+}
+
+/* Headings that are themselves links (e.g. inline `[text](href)` inside H2)
+   should keep heading color — the underline alone signals link affordance. */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a,
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a:visited {
+  color: inherit;
+  border-bottom-color: var(--sl-color-hairline);
+}
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a:hover {
+  color: var(--sl-color-text-accent);
   border-bottom-color: var(--sl-color-text-accent);
 }
 
@@ -349,6 +366,14 @@ starlight-toc a[aria-current='true'] {
 
 .pagination-links a:hover {
   border-color: var(--sl-color-accent);
+}
+
+/* ── Belt-and-suspenders: kill browser-default purple on :visited links
+   everywhere (Chrome forces #551a8b otherwise). Each link still has its
+   own :hover rule, so this only nukes the unwanted visited-purple state. */
+
+a:visited {
+  color: inherit;
 }
 
 /* ── Print: hide nav chrome, force light tokens. */
