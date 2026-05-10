@@ -1,0 +1,199 @@
+---
+import BenchmarksLayout from '../layouts/BenchmarksLayout.astro';
+import archives from '../data/archives.json';
+
+interface Scenario {
+  median_ratio?: number;
+  ci95?: [number, number];
+}
+interface Session {
+  id: string;
+  date: string;
+  name: string;
+  summary: string | null;
+  github_url: string;
+  ratios_url: string;
+  ratios: any;
+}
+
+const sessions = archives.sessions as Session[];
+
+function pick(s: Session, scenario: string, lang: 'python' | 'typescript'): Scenario | null {
+  const node = s.ratios?.scenarios?.[scenario]?.[`corvid_vs_${lang}`];
+  return node ?? null;
+}
+
+function fmt(n: number | undefined): string {
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  return n.toFixed(2);
+}
+
+const generated = new Date(archives.generated_at);
+const generatedDate = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(generated);
+---
+<BenchmarksLayout
+  title="Archive sessions"
+  description="Every dated benchmark session that includes a ratios.json measurement, sourced from Corvid-lang/benches/results."
+  canonical="https://corvid-lang.org/benchmarks/archives"
+>
+  <header class="index-header">
+    <div class="eyebrow">Archive sessions</div>
+    <h1>Every measurement, dated.</h1>
+    <p>
+      {sessions.length} session{sessions.length === 1 ? '' : 's'} with a <code>ratios.json</code> measurement, newest first.
+      The full raw data (<code>raw.jsonl</code>, <code>noise_floor</code>, per-percentile breakdowns) lives in each session
+      directory on GitHub. Synced from upstream on {generatedDate}.
+    </p>
+  </header>
+
+  <ul class="archive-list">
+    {sessions.map((s) => {
+      const tlPy = pick(s, 'tool_loop', 'python');
+      const tlTs = pick(s, 'tool_loop', 'typescript');
+      const rwPy = pick(s, 'retry_workflow', 'python');
+      const rwTs = pick(s, 'retry_workflow', 'typescript');
+      return (
+        <li class="archive-card">
+          <div class="archive-card-head">
+            <time class="archive-date" datetime={s.date}>{s.date}</time>
+            <h3>{s.name.replace(/-/g, ' ')}</h3>
+            {s.summary && <p class="archive-summary">{s.summary}</p>}
+          </div>
+
+          <table class="archive-ratios">
+            <thead>
+              <tr>
+                <th scope="col">Scenario</th>
+                <th scope="col">vs Python</th>
+                <th scope="col">vs TypeScript</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">tool_loop</th>
+                <td>{fmt(tlPy?.median_ratio)}×</td>
+                <td>{fmt(tlTs?.median_ratio)}×</td>
+              </tr>
+              <tr>
+                <th scope="row">retry_workflow</th>
+                <td>{fmt(rwPy?.median_ratio)}×</td>
+                <td>{fmt(rwTs?.median_ratio)}×</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="archive-links">
+            <a href={s.github_url} target="_blank" rel="noopener">Session directory →</a>
+            <a href={s.ratios_url} target="_blank" rel="noopener">ratios.json →</a>
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+
+  <nav class="meta-links" aria-label="Benchmarks navigation">
+    <a href="/benchmarks">← Headline numbers</a>
+    <a href="/benchmarks/methodology">Methodology →</a>
+    <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches/results" target="_blank" rel="noopener">benches/results/ on GitHub →</a>
+  </nav>
+</BenchmarksLayout>
+
+<style>
+  .archive-list {
+    list-style: none;
+    display: grid;
+    gap: 24px;
+  }
+  .archive-card {
+    padding: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--paper);
+    transition: background .2s ease, border-color .2s ease;
+  }
+  .archive-card:hover { background: var(--paper-w); }
+
+  .archive-card-head { margin-bottom: 24px; }
+  .archive-date {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-t);
+    margin-bottom: 6px;
+  }
+  .archive-card h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 8px;
+    text-transform: capitalize;
+  }
+  .archive-summary {
+    font-size: 15px;
+    color: var(--ink-s);
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
+  .archive-ratios {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .archive-ratios th[scope="col"] {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-t);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .archive-ratios th[scope="row"] {
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--ink-s);
+    padding: 10px 12px;
+  }
+  .archive-ratios td {
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .archive-ratios tbody tr + tr th,
+  .archive-ratios tbody tr + tr td {
+    border-top: 1px solid var(--border);
+  }
+
+  .archive-links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .archive-links a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-t);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: color .2s ease, border-color .2s ease;
+  }
+  .archive-links a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  @media (max-width: 768px) {
+    .archive-card { padding: 20px; }
+    .archive-ratios { font-size: 12px; }
+    .archive-ratios td, .archive-ratios th { padding: 8px; }
+  }
+</style>

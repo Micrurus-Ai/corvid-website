@@ -1,0 +1,82 @@
+---
+import BenchmarksLayout from '../layouts/BenchmarksLayout.astro';
+---
+<BenchmarksLayout
+  title="Methodology"
+  description="How we measure Corvid's orchestration overhead and bug-class rejection rates, and what we explicitly don't measure."
+  canonical="https://corvid-lang.org/benchmarks/methodology"
+>
+  <header class="index-header">
+    <div class="eyebrow">Methodology</div>
+    <h1>How we measure, and what we don't.</h1>
+    <p>What "ratio" means, how a benchmark is reproduced, and the non-promise list of things our numbers explicitly do not claim.</p>
+  </header>
+
+  <section class="bench">
+    <h2>What "ratio" means</h2>
+    <div class="bench-headline">
+      <p>
+        Every archive session's <code>ratios.json</code> reports a
+        <strong>Corvid-to-Python ratio</strong> (and a Corvid-to-TypeScript
+        ratio) for two scenarios: <code>tool_loop</code> (an agent that
+        issues a sequence of tool calls) and <code>retry_workflow</code>
+        (the same agent under a retry-on-error policy). For each scenario,
+        the ratio is the median of multiple runs, with a 95% confidence
+        interval and p50/p90/p99 percentiles disclosed alongside.
+      </p>
+      <p>
+        The ratio is calculated <strong>excluding model latency</strong>.
+        Both the Corvid and the Python/TypeScript runners issue the same
+        sequence of prompts to the same provider; we subtract the model's
+        wall-clock latency from each run and compare only the
+        orchestration overhead — the time the runtime spends scheduling,
+        deserializing, type-checking, and shuttling values between calls.
+        End-user wall-clock numbers are also captured in the raw data
+        (<code>raw.jsonl</code>), but the headline ratio is
+        orchestration-only because model latency dominates the user-
+        perceived time and would smear the meaningful comparison.
+      </p>
+      <p>
+        Where the ratio is greater than 1, Corvid is slower on that
+        scenario. Where it is less than 1, Corvid is faster. A ratio of
+        25 means Corvid takes 25× as long on orchestration as the
+        reference implementation. The launch post's quoted "~25–36×
+        slower than Python LangChain" is the range observed across both
+        scenarios in the canonical
+        <a href="https://github.com/Micrurus-Ai/Corvid-lang/blob/main/benches/results/2026-04-16-ratio-session/ratios.json" target="_blank" rel="noopener">2026-04-16-ratio-session</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="bench">
+    <h2>How to reproduce a benchmark</h2>
+    <div class="bench-headline">
+      <p>The runners are checked into the Corvid-lang repo. To reproduce:</p>
+      <p><code>corvid bench compare python</code> runs the Python-comparison runner against your local Corvid install and produces a <code>ratios.json</code> in the same shape as the archive sessions. <code>corvid bench compare typescript</code> does the same for the TypeScript comparison.</p>
+      <p>The runners are deterministic — model responses are recorded as fixtures so re-runs hit the same prompts in the same order. A drift gate in the Corvid CI fails the build if the recorded fixtures stop matching the runners' expected order, so the comparison stays apples-to-apples across runtime changes.</p>
+      <p>Each moat sub-benchmark under <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches/moat" target="_blank" rel="noopener">benches/moat/</a> has its own runner and its own <code>RESULTS.md</code> documenting the exact cases and methodology. The moat numbers (50/50 compile-time rejection, governance line counts, etc.) are independent of orchestration overhead; they're structural measurements of what each language can and cannot reject before runtime.</p>
+    </div>
+  </section>
+
+  <section class="bench">
+    <h2>What we don't measure</h2>
+    <div class="bench-headline">
+      <p>The benchmarks intentionally leave several axes unmeasured. Listing them so visitors aren't tempted to read meaning that isn't there:</p>
+      <ul>
+        <li><strong>Model output quality.</strong> Corvid runs the same prompts as the reference implementations; the model returns the same text. We don't measure whether the model's answer is right, only what the runtime does with it.</li>
+        <li><strong>End-user latency including network.</strong> Network time to the model API is captured in the raw data but not in the ratio. A 36× orchestration ratio on a workload where the model takes 30 seconds becomes a ~3% wall-clock difference end-to-end. Use the raw data when this matters.</li>
+        <li><strong>Cold-start time.</strong> Each scenario is measured after the runtime is warm. Cold-start numbers are a separate axis and are not represented in <code>ratios.json</code>.</li>
+        <li><strong>Memory / RSS.</strong> Memory profiling is outside the scope of the ratio benchmarks. Some archive sessions (e.g. <code>perf-investigation</code>) include memory snapshots in their <code>investigation.json</code>; the headline ratio does not.</li>
+        <li><strong>Comparison to LangGraph, LlamaIndex, AutoGen, etc.</strong> The Python reference is LangChain because it's the closest competitor in shape. We do not claim Corvid is faster or slower than every Python agent framework — only than the one we benchmarked against.</li>
+        <li><strong>Concurrency under load.</strong> All benchmarks run single-threaded against a single agent. Multi-agent throughput is a separate concern; the ratio does not predict it.</li>
+      </ul>
+      <p>If you need a measurement we don't surface, the raw inputs are all in <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches" target="_blank" rel="noopener">benches/</a>; the runners are small and forkable. We'd rather you compute the number than that we publish one we can't defend.</p>
+    </div>
+  </section>
+
+  <nav class="meta-links" aria-label="Benchmarks navigation">
+    <a href="/benchmarks">← Headline numbers</a>
+    <a href="/benchmarks/archives">Archive sessions →</a>
+    <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches" target="_blank" rel="noopener">benches/ on GitHub →</a>
+  </nav>
+</BenchmarksLayout>
