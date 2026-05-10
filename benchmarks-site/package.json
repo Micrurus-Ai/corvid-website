@@ -1,0 +1,23 @@
+{
+  "name": "corvid-benchmarks-site",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Astro project building /benchmarks for corvid-lang.org. Renders the moat benchmark headlines and the dated archive sessions, both sourced from the upstream Corvid-lang/benches tree via scripts/sync-benchmarks.mjs.",
+  "scripts": {
+    "sync": "node ../scripts/sync-benchmarks.mjs",
+    "predev": "node ../scripts/sync-benchmarks.mjs",
+    "dev": "astro dev",
+    "prebuild": "node ../scripts/sync-benchmarks.mjs",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.7.0",
+    "marked": "^14.0.0",
+    "sharp": "^0.34.0",
+    "typescript": "^5.7.0"
+  }
+}

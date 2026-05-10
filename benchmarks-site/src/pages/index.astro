@@ -1,0 +1,128 @@
+---
+import BenchmarksLayout from '../layouts/BenchmarksLayout.astro';
+import { marked } from 'marked';
+import moat from '../data/moat.json';
+import archives from '../data/archives.json';
+
+// Render the headline_markdown for each moat benchmark to HTML at build
+// time. Content is sync'd from upstream Corvid-lang/benches; trusted.
+marked.setOptions({ gfm: true, breaks: false });
+
+interface MoatBenchmark {
+  id: string;
+  title: string;
+  description: string;
+  github_url: string;
+  github_dir_url: string;
+  headline_markdown: string | null;
+  missing?: boolean;
+}
+
+const benchmarks = (moat.benchmarks as MoatBenchmark[]).map((b) => ({
+  ...b,
+  headline_html: b.headline_markdown ? marked.parse(b.headline_markdown) : null,
+}));
+
+// Pull the orchestration-overhead ratios from the canonical published-
+// ratio session. NOT just "the newest session" — many of the dated
+// sessions are perf-engineering probes that measure Corvid as faster
+// on a synthetic microbench, which is not what the brief's "honest
+// orchestration overhead" framing intends. The canonical session is
+// explicitly named *-ratio-session (or similar) and produces the
+// 25-36x / 1.7-2.6x ranges the launch post quotes. If that session
+// is missing upstream, fall back to the session with the HIGHEST
+// tool_loop py ratio — the most defensibly "honest slow" number.
+const CANONICAL_SESSION_ID = '2026-04-16-ratio-session';
+function pickHonestNumbers() {
+  const sessions = archives.sessions as any[];
+  const canonical = sessions.find((s) => s.id === CANONICAL_SESSION_ID);
+  let pick = canonical;
+  if (!pick) {
+    // Fallback: session with highest tool_loop py ratio.
+    pick = sessions
+      .filter((s) => s.ratios?.scenarios?.tool_loop?.corvid_vs_python?.median_ratio != null)
+      .sort(
+        (a, b) =>
+          b.ratios.scenarios.tool_loop.corvid_vs_python.median_ratio -
+          a.ratios.scenarios.tool_loop.corvid_vs_python.median_ratio,
+      )[0];
+  }
+  if (!pick) return null;
+
+  const tl = pick.ratios?.scenarios?.tool_loop ?? {};
+  const rw = pick.ratios?.scenarios?.retry_workflow ?? {};
+  const pyRatios = [tl?.corvid_vs_python?.median_ratio, rw?.corvid_vs_python?.median_ratio].filter(
+    (v) => typeof v === 'number',
+  );
+  const tsRatios = [tl?.corvid_vs_typescript?.median_ratio, rw?.corvid_vs_typescript?.median_ratio].filter(
+    (v) => typeof v === 'number',
+  );
+  if (pyRatios.length === 0 || tsRatios.length === 0) return null;
+  return {
+    session_id: pick.id,
+    session_date: pick.date,
+    session_url: pick.github_url,
+    py_low: Math.min(...pyRatios),
+    py_high: Math.max(...pyRatios),
+    ts_low: Math.min(...tsRatios),
+    ts_high: Math.max(...tsRatios),
+  };
+}
+const honest = pickHonestNumbers();
+
+const fmt = (n: number) => n.toFixed(1);
+---
+<BenchmarksLayout
+  title="Honest benchmarks — Corvid Benchmarks"
+  canonical="https://corvid-lang.org/benchmarks"
+>
+  <header class="index-header">
+    <div class="eyebrow">Benchmarks</div>
+    <h1>Honest benchmarks. Including the parts we lose.</h1>
+    <p>Corvid optimizes for correctness, not raw throughput. Here's what that lands as on the canonical reference apps.</p>
+  </header>
+
+  {benchmarks.map((b) => (
+    <section class="bench" id={b.id}>
+      <h2>{b.title}</h2>
+      <p class="description">{b.description}</p>
+      {b.headline_html ? (
+        <div class="bench-headline" set:html={b.headline_html} />
+      ) : (
+        <p class="bench-headline" style="color: var(--ink-t); font-style: italic">
+          Headline numbers not yet published for this benchmark — see the source for the full RESULTS.md.
+        </p>
+      )}
+      <div class="bench-source">
+        Source: <a href={b.github_url} target="_blank" rel="noopener">benches/moat/{b.id}/RESULTS.md →</a>
+        <span aria-hidden="true"> · </span>
+        Reproduce: <code>corvid bench compare python</code>
+      </div>
+    </section>
+  ))}
+
+  {honest && (
+    <aside class="honest-block">
+      <div class="eyebrow">Honest orchestration overhead</div>
+      <h2>Where Corvid is slower.</h2>
+      <p>
+        On the canonical reference-app workloads, the Corvid orchestration layer runs
+        <strong> ~{fmt(honest.py_low)}–{fmt(honest.py_high)}× slower</strong> than Python LangChain and
+        <strong> {fmt(honest.ts_low)}–{fmt(honest.ts_high)}× slower</strong> than the TypeScript equivalent. Model latency dominates the
+        end-user wall clock so most agents don't feel it — but the orchestration gap is real and we don't hide it.
+      </p>
+      <p>
+        Numbers above come from <a href={honest.session_url} target="_blank" rel="noopener">session {honest.session_id}</a>.
+        Reproduce locally with <code>corvid bench compare python</code> or <code>corvid bench compare typescript</code>. The
+        <a href="/benchmarks/methodology"> methodology page</a> explains what we count as orchestration overhead, how the noise
+        floor is computed, and which dimensions we explicitly don't measure.
+      </p>
+    </aside>
+  )}
+
+  <nav class="meta-links" aria-label="Benchmarks navigation">
+    <a href="/benchmarks/methodology">Methodology →</a>
+    <a href="/benchmarks/archives">All archive sessions ({archives.session_count}) →</a>
+    <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches" target="_blank" rel="noopener">benches/ on GitHub →</a>
+  </nav>
+</BenchmarksLayout>

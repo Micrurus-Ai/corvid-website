@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.env
+
+# Sync output — regenerated from upstream Corvid-lang/benches by
+# scripts/sync-benchmarks.mjs on every build. Source of truth lives
+# upstream; do not commit these files.
+src/data/

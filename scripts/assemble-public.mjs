@@ -23,6 +23,7 @@ const REPO_ROOT = resolve(__dirname, '..');
 const PUBLIC_DIR = resolve(REPO_ROOT, 'public');
 const DOCS_DIST = resolve(REPO_ROOT, 'docs-site/dist');
 const BLOG_DIST = resolve(REPO_ROOT, 'blog-site/dist');
+const BENCHMARKS_DIST = resolve(REPO_ROOT, 'benchmarks-site/dist');
 
 // Top-level files/dirs that make up the marketing landing + SEO surface.
 const LANDING_ENTRIES = [
@@ -82,6 +83,14 @@ function main() {
     console.log(`[assemble-public] mounted blog-site/dist -> public/blog/`);
   } else {
     console.warn(`[assemble-public] WARNING: blog-site/dist not found — skipping /blog/`);
+  }
+
+  // 4. Copy the benchmarks site into /benchmarks/, if it was built.
+  if (existsSync(BENCHMARKS_DIST)) {
+    copyRecursive(BENCHMARKS_DIST, join(PUBLIC_DIR, 'benchmarks'));
+    console.log(`[assemble-public] mounted benchmarks-site/dist -> public/benchmarks/`);
+  } else {
+    console.warn(`[assemble-public] WARNING: benchmarks-site/dist not found — skipping /benchmarks/`);
   }
 
   console.log(`[assemble-public] public/ assembled`);
