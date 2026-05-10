@@ -46,12 +46,14 @@
 | `/docs/book/02-quickstart` | docs site | ✅ live |
 | `/docs/book/03-tutorial-refund-agent` | docs site | ✅ live |
 | `/docs/security/model-overview` | docs site | ✅ live |
-| `/benchmarks` | website | ❌ **NOT YET BUILT** — slice 33J4 |
-| `/beta` | website | ❌ **NOT YET BUILT** — slice 33M |
+| `/benchmarks` | website | ✅ **live** as of slice 33J4 |
+| ~~`/beta`~~ | ~~website~~ | **Removed from post 2026-05-10** — 33M deliberately skipped. The discuss-and-contribute paragraph now points only at GitHub Issues + Discussions, with no formal beta-program commitment. |
 
-**Publish gate:** the post should NOT go live until 33J4 (`/benchmarks`)
-and 33M (`/beta`) ship, OR the two links in the post are removed
-before publish.
+**Publish gate:** none from this audit dimension. The `/benchmarks`
+slice has shipped, and the `/beta` link was removed from the post in
+the same commit as this audit update. Maintainer should still spot-
+check upstream-sourced claims (numerical ratios, guarantee_id, CLI
+surfaces) against `Micrurus-Ai/Corvid-lang` before publishing.
 
 ## §4. External links
 

@@ -74,9 +74,9 @@ v1.0 closes the design phase: every claim in the spec has a working implementati
 
 ## Discuss and contribute
 
-If you build something with Corvid, we want to see it. [GitHub Discussions](https://github.com/Micrurus-Ai/Corvid-lang/discussions) is where conversations happen; the [Issue tracker](https://github.com/Micrurus-Ai/Corvid-lang/issues) is where bugs go. If you want to break the compiler — find a path where a tool call gated by an approval compiles without one — the [adversarial-taxonomy bounty](https://github.com/Micrurus-Ai/Corvid-lang/blob/main/docs/internals/effect-spec/bounty.md) names the prize.
+If you build something with Corvid, we want to see it. [GitHub Discussions](https://github.com/Micrurus-Ai/Corvid-lang/discussions) is where conversations happen; the [Issue tracker](https://github.com/Micrurus-Ai/Corvid-lang/issues) is where bugs go. We triage issues regularly and close each one either by landing a fix or by writing down why something is out of scope.
 
-The [beta program](/beta) is open. We're looking for twenty developers who want to build something real on Corvid before the v1.0 cut goes wide. Time commitment is about five hours over two weeks. We respond to every issue you file within 48 hours, and we close it either by landing a fix before launch or by writing down why it's out of scope.
+If you want to break the compiler — find a path where a tool call gated by an approval compiles without one — the [adversarial-taxonomy bounty](https://github.com/Micrurus-Ai/Corvid-lang/blob/main/docs/internals/effect-spec/bounty.md) names the prize.
 
 Build something dangerous. Watch it refuse to compile. Then ship it, because the compiler proved no path can reach a gated tool call without an approval.
 
