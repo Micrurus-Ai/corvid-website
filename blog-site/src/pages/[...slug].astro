@@ -27,6 +27,25 @@ function readingTime(body: string | undefined): number {
 
 const minutes = readingTime(post.body);
 const canonical = `https://corvid-lang.org/blog/${post.id}`;
+
+// Share-dialog URLs for the discuss footer. Each opens in a new tab with
+// the post's canonical URL + title prefilled.
+const sharedUrl = encodeURIComponent(canonical);
+const sharedTitle = encodeURIComponent(post.data.title);
+const shareLinks = [
+  {
+    label: 'Hacker News',
+    href: `https://news.ycombinator.com/submitlink?u=${sharedUrl}&t=${sharedTitle}`,
+  },
+  {
+    label: 'Reddit',
+    href: `https://www.reddit.com/submit?url=${sharedUrl}&title=${sharedTitle}`,
+  },
+  {
+    label: 'Twitter',
+    href: `https://twitter.com/intent/tweet?text=${sharedTitle}&url=${sharedUrl}`,
+  },
+];
 ---
 <BlogLayout
   title={post.data.title}
@@ -51,5 +70,16 @@ const canonical = `https://corvid-lang.org/blog/${post.id}`;
     <div class="post-body">
       <Content />
     </div>
+
+    <aside class="share">
+      <div class="share-label">Discuss this post</div>
+      <ul class="share-links">
+        {shareLinks.map((s) => (
+          <li>
+            <a href={s.href} target="_blank" rel="noopener noreferrer">{s.label} →</a>
+          </li>
+        ))}
+      </ul>
+    </aside>
   </article>
 </BlogLayout>
