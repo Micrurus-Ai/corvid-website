@@ -85,7 +85,12 @@ export default defineConfig({
         { label: 'Help', autogenerate: { directory: 'help' } },
         { label: 'Meta', autogenerate: { directory: 'meta' }, collapsed: true },
       ],
-      components: {},
+      components: {
+        // Override SiteTitle so the wordmark links back to the marketing
+        // root at /. Default Starlight links it to /docs, leaving visitors
+        // stuck in the docs section with no path home.
+        SiteTitle: './src/components/SiteTitle.astro',
+      },
     }),
   ],
 });

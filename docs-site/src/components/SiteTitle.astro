@@ -1,0 +1,94 @@
+---
+/**
+ * Custom SiteTitle: replaces Starlight's default so the wordmark links
+ * back to the marketing root (https://corvid-lang.org/) instead of /docs.
+ *
+ * Layout:
+ *   [logo] Corvid / Docs
+ *   ─────────────  ────
+ *   links to /     links to /docs (current section)
+ *
+ * Without this override, visitors who landed on the docs have no path
+ * back to the marketing landing.
+ */
+import config from 'virtual:starlight/user-config';
+---
+
+<a href="/" class="site-title sl-flex" aria-label={`${config.title.en ?? config.title} — back to home`}>
+  {
+    config.logo &&
+      (() => {
+        const { src } = config.logo as { src: string };
+        return (
+          <img
+            class="logo light:sl-hidden print:hidden"
+            alt=""
+            src={src}
+            width="40"
+            height="40"
+          />
+        );
+      })()
+  }
+  <span class="wordmark">Corvid</span>
+</a>
+<span class="separator" aria-hidden="true">/</span>
+<a href="/docs" class="docs-label">Docs</a>
+
+<style>
+  .site-title {
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--sl-color-text);
+    text-decoration: none;
+    font-family: var(--corvid-serif, 'Source Serif 4', Georgia, serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    transition: opacity 0.2s ease;
+  }
+  .site-title:hover {
+    opacity: 0.7;
+  }
+
+  .logo {
+    height: 32px;
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .wordmark {
+    white-space: nowrap;
+  }
+
+  .separator {
+    margin: 0 0.5rem;
+    color: var(--sl-color-gray-4);
+    font-family: var(--corvid-serif, 'Source Serif 4', Georgia, serif);
+    font-weight: 300;
+    font-size: 22px;
+  }
+
+  .docs-label {
+    font-family: var(--corvid-mono, 'JetBrains Mono', monospace);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .docs-label:hover,
+  .docs-label:visited {
+    color: var(--sl-color-text);
+  }
+
+  @media (max-width: 600px) {
+    .separator,
+    .docs-label {
+      display: none;
+    }
+  }
+</style>
