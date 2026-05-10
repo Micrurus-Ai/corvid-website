@@ -187,18 +187,28 @@ function rewriteLinkTarget(target, fileDir) {
   webPath = webPath.replace(/(^|\/)index$/i, '$1');
   webPath = webPath.replace(/\/+$/, '');
 
+  // Mirror Astro's content-collection slug normalization on each path
+  // segment: lowercase + strip periods (so `v1.0-demo-script.md` resolves
+  // to `v10-demo-script`, matching the route Astro emits).
+  webPath = webPath.split('/').map(astroSlug).join('/');
+
   if (!webPath) return `/docs${anchorSuffix}`;
   return `/docs/${webPath}${anchorSuffix}`;
 }
 
-// Check whether a path (relative to docs/ root) corresponds to a real file
-// or directory in the upstream tree. We consider the path real if any of:
-//   - the exact file exists
+// Astro's content collection slug-from-filename rules (observed):
+// lowercase, strip periods. Other punctuation is preserved.
+function astroSlug(seg) {
+  return seg.toLowerCase().replace(/\./g, '');
+}
+
+// Check whether a path (relative to docs/ root) corresponds to a renderable
+// docs page upstream. A bare directory with no markdown does NOT count —
+// Astro can't generate a route for it. Valid only if any of:
 //   - <path>.md / <path>.mdx exists (extension stripped in author's link)
 //   - <path>/README.md or <path>/index.md exists (directory landing)
 function resolvedExistsInDocs(webPath) {
   const base = join(SOURCE_DOCS, webPath);
-  if (existsSync(base)) return true;
   if (existsSync(base + '.md')) return true;
   if (existsSync(base + '.mdx')) return true;
   if (existsSync(join(base, 'README.md'))) return true;
