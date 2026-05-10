@@ -20,7 +20,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, statSync, readdirSync, copyFileSync } from 'node:fs';
-import { dirname, join, relative, resolve, basename } from 'node:path';
+import { dirname, join, relative, resolve, basename, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -94,8 +94,87 @@ function walkAndCopy(srcRoot, dstRoot) {
     const dstName = basename(entry).toLowerCase() === 'readme.md' ? 'index.md' : entry;
     const dstPath = join(dstRoot, dstName);
     const content = readFileSync(srcPath, 'utf-8');
-    writeFileSync(dstPath, ensureFrontmatter(content, srcPath));
+
+    // Compute the file's directory relative to docs/ root (POSIX form, for
+    // link resolution). Top-level files have fileDir === '.'.
+    const fileRelToDocs = relative(SOURCE_DOCS, srcPath).split(/[\\/]/).join('/');
+    const fileDir = posix.dirname(fileRelToDocs);
+
+    const withFrontmatter = ensureFrontmatter(content, srcPath);
+    const withRewrittenLinks = rewriteMarkdownLinks(withFrontmatter, fileDir);
+    writeFileSync(dstPath, withRewrittenLinks);
   }
+}
+
+// Top-level directories that legitimately exist inside docs/. Anything else
+// at the docs-tree root (e.g. crates/, ROADMAP.md, .github/) is repo-level
+// content and should redirect to GitHub instead of staying as a relative
+// link that resolves to a 404 on the website.
+const DOCS_TOP_DIRS = new Set([
+  'book', 'guides', 'recipes', 'reference', 'migration', 'operations',
+  'security', 'internals', 'help', 'meta',
+]);
+const GITHUB_BASE = 'https://github.com/Micrurus-Ai/Corvid-lang/blob/main/';
+
+// Rewrite all Markdown link targets in the file body. Image syntax (`![alt](src)`)
+// is left untouched so synced image assets keep working.
+function rewriteMarkdownLinks(content, fileDir) {
+  return content.replace(
+    /(^|[^!])(\[(?:[^\]\\]|\\.)*\])\(([^()\s]+)(\s+"[^"]*")?\)/g,
+    (_match, prefix, textPart, target, titlePart = '') => {
+      const newTarget = rewriteLinkTarget(target, fileDir);
+      return `${prefix}${textPart}(${newTarget}${titlePart})`;
+    },
+  );
+}
+
+function rewriteLinkTarget(target, fileDir) {
+  // Skip absolute URLs, schemes, anchors, root-relative paths.
+  if (/^(https?:\/\/|mailto:|tel:|#|\/|data:|ftp:)/i.test(target)) return target;
+
+  const hashIdx = target.indexOf('#');
+  const pathPart = hashIdx >= 0 ? target.slice(0, hashIdx) : target;
+  const anchorSuffix = hashIdx >= 0 ? target.slice(hashIdx) : '';
+
+  if (!pathPart) return target;
+  // Skip pure query-string links — they don't fit our rewrite model.
+  if (pathPart.startsWith('?')) return target;
+
+  // Resolve under a sentinel so ../ traversals above docs/ are detectable.
+  const SENTINEL = '__DOCS__';
+  const fileDirNorm = fileDir === '.' ? '' : fileDir;
+  const resolved = posix.normalize(posix.join(SENTINEL, fileDirNorm, pathPart));
+
+  // Path escaped above docs/ via ../ — point at GitHub source.
+  if (!resolved.startsWith(`${SENTINEL}/`) && resolved !== SENTINEL) {
+    return `${GITHUB_BASE}${resolved}${anchorSuffix}`;
+  }
+
+  let webPath = resolved === SENTINEL ? '' : resolved.slice(SENTINEL.length + 1);
+
+  // First-segment check: a path that stays inside the docs/ tree but whose
+  // first segment isn't a known docs subdirectory (book, guides, …) is
+  // repo-rooted content masquerading as docs (e.g. `../../crates/foo.rs`
+  // resolves to `crates/foo.rs`, `../../ROADMAP.md` resolves to `ROADMAP.md`).
+  // Only README/index at the docs root is a legitimate "docs landing" target.
+  const firstSeg = webPath.split('/')[0];
+  const isReadmeOrIndex = /^(README|index)(\.mdx?)?$/i.test(webPath);
+  if (
+    firstSeg &&
+    !DOCS_TOP_DIRS.has(firstSeg) &&
+    !isReadmeOrIndex
+  ) {
+    return `${GITHUB_BASE}${webPath}${anchorSuffix}`;
+  }
+
+  // In-docs path: strip .md/.mdx, collapse README/index to its directory.
+  webPath = webPath.replace(/\.mdx?$/i, '');
+  webPath = webPath.replace(/(^|\/)README$/i, '$1');
+  webPath = webPath.replace(/(^|\/)index$/i, '$1');
+  webPath = webPath.replace(/\/+$/, '');
+
+  if (!webPath) return `/docs${anchorSuffix}`;
+  return `/docs/${webPath}${anchorSuffix}`;
 }
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;

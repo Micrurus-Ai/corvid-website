@@ -8,6 +8,22 @@
     ],
     "cleanUrls": true,
     "trailingSlash": false,
+    "redirects": [
+      { "source": "/docs/the-moat",       "destination": "/docs/book/00-why-corvid",           "type": 301 },
+      { "source": "/docs/quickstart",     "destination": "/docs/book/02-quickstart",           "type": 301 },
+      { "source": "/docs/tutorial",       "destination": "/docs/book/03-tutorial-refund-agent","type": 301 },
+      { "source": "/docs/effects",        "destination": "/docs/book/07-effects",              "type": 301 },
+      { "source": "/docs/approve",        "destination": "/docs/book/08-approve",              "type": 301 },
+      { "source": "/docs/grounded",       "destination": "/docs/book/09-grounded",             "type": 301 },
+      { "source": "/docs/modules",        "destination": "/docs/book/06-modules",              "type": 301 },
+      { "source": "/docs/grammar",        "destination": "/docs/reference/grammar",            "type": 301 },
+      { "source": "/docs/reference-apps", "destination": "/docs/reference/reference-apps",     "type": 301 },
+      { "source": "/docs/backend",        "destination": "/docs/guides/backend",               "type": 301 },
+      { "source": "/docs/jobs",           "destination": "/docs/guides/jobs",                  "type": 301 },
+      { "source": "/docs/observability",  "destination": "/docs/guides/observability",         "type": 301 },
+      { "source": "/docs/wasm",           "destination": "/docs/guides/wasm",                  "type": 301 },
+      { "source": "/docs/ffi-c",          "destination": "/docs/guides/ffi-c-rust",            "type": 301 }
+    ],
     "headers": [
       {
         "source": "**/*.@(js|css|svg|woff|woff2|jpg|jpeg|png|webp|avif)",

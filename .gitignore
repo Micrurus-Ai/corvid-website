@@ -1,5 +1,6 @@
 # Build artifact for Firebase Hosting (assembled at build time).
-public/
+# Anchored to repo root only — docs-site/public/ is Astro static assets and IS tracked.
+/public/
 
 # Local sync cache for the upstream Corvid-lang docs.
 .corvid-source/
