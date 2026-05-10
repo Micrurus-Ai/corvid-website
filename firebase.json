@@ -9,6 +9,9 @@
     "cleanUrls": true,
     "trailingSlash": false,
     "redirects": [
+      { "source": "/install",     "destination": "https://raw.githubusercontent.com/Micrurus-Ai/Corvid-lang/main/install/install.sh",  "type": 302 },
+      { "source": "/install.sh",  "destination": "https://raw.githubusercontent.com/Micrurus-Ai/Corvid-lang/main/install/install.sh",  "type": 302 },
+      { "source": "/install.ps1", "destination": "https://raw.githubusercontent.com/Micrurus-Ai/Corvid-lang/main/install/install.ps1", "type": 302 },
       { "source": "/docs/the-moat",       "destination": "/docs/book/00-why-corvid",           "type": 301 },
       { "source": "/docs/quickstart",     "destination": "/docs/book/02-quickstart",           "type": 301 },
       { "source": "/docs/tutorial",       "destination": "/docs/book/03-tutorial-refund-agent","type": 301 },
