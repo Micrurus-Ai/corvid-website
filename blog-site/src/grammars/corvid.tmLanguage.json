@@ -12,6 +12,8 @@
     { "include": "#money" },
     { "include": "#numbers" },
     { "include": "#approve-action" },
+    { "include": "#function-declarations" },
+    { "include": "#type-declarations" },
     { "include": "#annotations" },
     { "include": "#constants" },
     { "include": "#control-keywords" },
@@ -94,6 +96,28 @@
           "captures": {
             "1": { "name": "keyword.declaration.approve.corvid" },
             "2": { "name": "entity.name.function.approve-action.corvid" }
+          }
+        }
+      ]
+    },
+    "function-declarations": {
+      "patterns": [
+        {
+          "match": "\\b(agent|tool|prompt|fn)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.corvid" },
+            "2": { "name": "entity.name.function.corvid" }
+          }
+        }
+      ]
+    },
+    "type-declarations": {
+      "patterns": [
+        {
+          "match": "\\b(effect|struct|type|server)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.declaration.corvid" },
+            "2": { "name": "entity.name.type.corvid" }
           }
         }
       ]
