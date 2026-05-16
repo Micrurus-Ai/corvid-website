@@ -1,0 +1,193 @@
+---
+/**
+ * Playground main page (Tier 1).
+ *
+ * Pre-renders the picker, source view, and metadata side panel for the
+ * default example so the page is meaningful before any JS executes.
+ * The runtime script (src/scripts/playground.ts) takes over once it
+ * loads:
+ *   - Hooks picker clicks to swap source + metadata + re-check.
+ *   - Lazy-loads the corvid-browser WASM on first check.
+ *   - For the marquee examples (approve-gates, provenance-propagation),
+ *     swaps the read-only source view for an editable <textarea> with
+ *     debounced 300ms re-check on every edit.
+ *
+ * Catalog source: ../public/wasm/examples.json, written by
+ * scripts/sync-playground-wasm.mjs from listExamples() in the WASM module.
+ */
+import PlaygroundLayout from '../layouts/PlaygroundLayout.astro';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { createHighlighter } from 'shiki';
+
+const catalogPath = resolve(
+  process.cwd(),
+  'public/wasm/examples.json',
+);
+const catalogRaw = readFileSync(catalogPath, 'utf-8');
+const catalog = JSON.parse(catalogRaw) as {
+  version: 'v1';
+  examples: Array<{
+    name: string;
+    title: string;
+    category: string;
+    pitch: string;
+    source: string;
+    spec_path: string;
+    non_scope: string;
+    tier: 1 | 2;
+  }>;
+};
+
+if (catalog.version !== 'v1') {
+  throw new Error(`playground: expected examples.json version "v1", got ${catalog.version}`);
+}
+
+// Group by category, preserving first-seen order so the picker mirrors the
+// order TOPICS uses in tour.rs.
+const byCategory: Array<{ category: string; examples: typeof catalog.examples }> = [];
+for (const ex of catalog.examples) {
+  let bucket = byCategory.find((b) => b.category === ex.category);
+  if (!bucket) {
+    bucket = { category: ex.category, examples: [] };
+    byCategory.push(bucket);
+  }
+  bucket.examples.push(ex);
+}
+
+const defaultExample = catalog.examples[0];
+
+// Examples that route through the editable-textarea path on the client.
+// Approve-gates is the marquee compile-refusal demo (delete the approve
+// line, watch the diagnostic). Provenance-propagation is the second
+// marquee per the latest brief — the type system carries citation flow.
+const EDITABLE = new Set(['approve-gates', 'provenance-propagation']);
+
+// Server-side syntax highlight for first paint using the same Shiki
+// grammar the docs and blog sites use. Client-side updates re-highlight
+// via the same grammar (loaded as a separate fetch).
+const grammar = JSON.parse(
+  readFileSync(resolve(process.cwd(), 'src/grammars/corvid.tmLanguage.json'), 'utf-8'),
+);
+const highlighter = await createHighlighter({
+  langs: [grammar],
+  themes: ['github-light'],
+});
+function highlight(source: string): string {
+  return highlighter.codeToHtml(source, { lang: 'corvid', theme: 'github-light' });
+}
+
+// Pre-render every example's highlighted source + metadata so client-side
+// swap is instant (no per-example fetch round-trip). The JSON payload is
+// small — 20 examples, total bytes well under the WASM module itself.
+const clientCatalog = catalog.examples.map((ex) => ({
+  name: ex.name,
+  title: ex.title,
+  category: ex.category,
+  pitch: ex.pitch,
+  source: ex.source,
+  highlightedSource: highlight(ex.source),
+  spec_path: ex.spec_path,
+  non_scope: ex.non_scope,
+  tier: ex.tier,
+  editable: EDITABLE.has(ex.name),
+}));
+
+const defaultHighlighted = highlight(defaultExample.source);
+const defaultEditable = EDITABLE.has(defaultExample.name);
+const defaultSpecUrl = `https://github.com/Micrurus-Ai/Corvid-lang/blob/main/${defaultExample.spec_path}`;
+---
+<PlaygroundLayout title="Corvid Playground">
+  <div class="pg-shell">
+    <!-- LEFT RAIL: examples picker -->
+    <aside class="pg-panel" aria-label="Examples">
+      <div class="pg-panel-header">
+        <span>Examples</span>
+        <span>{catalog.examples.length}</span>
+      </div>
+      <div class="pg-panel-body" id="pg-picker">
+        {byCategory.map((cat) => (
+          <section class="pg-cat">
+            <div class="pg-cat-name">{cat.category}</div>
+            <ul class="pg-ex-list">
+              {cat.examples.map((ex) => (
+                <li>
+                  <button
+                    type="button"
+                    class="pg-ex"
+                    data-name={ex.name}
+                    data-active={ex.name === defaultExample.name ? 'true' : 'false'}
+                  >
+                    <span class="pg-ex-title">{ex.title}</span>
+                    <span class="pg-ex-pitch">{ex.pitch}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </aside>
+
+    <!-- CENTER: source view (top) + terminal panel (bottom) -->
+    <section class="pg-center">
+      <div class="pg-panel pg-source-panel">
+        <div class="pg-panel-header">
+          <span id="pg-source-title">{defaultExample.title}</span>
+          <span class="pg-actions">
+            {defaultEditable ? <span class="pg-editable-badge" id="pg-editable-badge">editable</span> : <span class="pg-editable-badge" id="pg-editable-badge" hidden>editable</span>}
+            <button type="button" class="pg-btn-reset" id="pg-reset" disabled>Reset</button>
+            <button type="button" class="pg-btn" id="pg-check">Check</button>
+          </span>
+        </div>
+        <div class="pg-status-bar" id="pg-status">
+          <span class="pg-status-dot" id="pg-status-dot" data-state="idle"></span>
+          <span id="pg-status-text">Ready. Click Check to typecheck this example.</span>
+        </div>
+        <div class="pg-source-host" id="pg-source-host" set:html={defaultHighlighted}></div>
+      </div>
+      <div class="pg-panel">
+        <div class="pg-panel-header pg-terminal-header">
+          <span>Terminal</span>
+          <span id="pg-term-meta">corvid check</span>
+        </div>
+        <div class="pg-terminal" id="pg-terminal">
+          <span class="pg-term-line"><span class="pg-term-prompt">$ </span>corvid check {defaultExample.name}.cor</span>
+          <span class="pg-term-line">  (click <strong>Check</strong> to run the typechecker in your browser)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT RAIL: pitch + spec + non-scope -->
+    <aside class="pg-panel" aria-label="About this example">
+      <div class="pg-panel-header">
+        <span>About</span>
+        <span id="pg-meta-name">{defaultExample.name}</span>
+      </div>
+      <div class="pg-panel-body pg-meta">
+        <div class="pg-meta-title" id="pg-meta-title">{defaultExample.title}</div>
+        <div class="pg-meta-category" id="pg-meta-category">{defaultExample.category}</div>
+        <p class="pg-meta-pitch" id="pg-meta-pitch">{defaultExample.pitch}</p>
+        <div class="pg-meta-section">Spec</div>
+        <p class="pg-meta-spec">
+          <a id="pg-meta-spec-link" href={defaultSpecUrl} target="_blank" rel="noopener">{defaultExample.spec_path}</a>
+        </p>
+        <div class="pg-meta-section" style="margin-top:22px">Not in scope</div>
+        <p class="pg-meta-nonscope" id="pg-meta-nonscope">{defaultExample.non_scope}</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Pre-rendered catalog serialized into the page so the client script
+       can swap examples without an extra round-trip. -->
+  <script
+    is:inline
+    type="application/json"
+    id="pg-catalog"
+    set:html={JSON.stringify(clientCatalog)}
+  />
+
+  <script>
+    import '../scripts/playground.ts';
+  </script>
+</PlaygroundLayout>

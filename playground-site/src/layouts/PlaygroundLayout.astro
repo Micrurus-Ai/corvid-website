@@ -1,33 +1,34 @@
 ---
 /**
- * Shared layout for /benchmarks, /benchmarks/methodology, /benchmarks/archives.
- * Nav header + footer match the blog's shell — wordmark links home, the
- * "Benchmarks" eyebrow stays in section, Docs/Blog/GitHub for cross-nav.
+ * Shell for /playground. Fixed-viewport app: nav header at top, four-pane
+ * grid filling the rest, status bar / footer pinned at the bottom.
+ *
+ * Cross-site nav matches docs / blog / benchmarks: wordmark -> /, then
+ * the section-label "Playground" stays in section, then the other top-
+ * level destinations.
  */
-import '../styles/benchmarks.css';
+import '../styles/playground.css';
 
 interface Props {
   title: string;
   description?: string;
-  canonical?: string;
 }
 
-const { title, description, canonical } = Astro.props;
-const siteTitle = title.endsWith('Corvid Benchmarks') ? title : `${title} — Corvid Benchmarks`;
-const canonicalUrl = canonical ?? Astro.url.href;
-const description_ =
+const { title, description } = Astro.props;
+const fullTitle = title.endsWith('Corvid Playground') ? title : `${title} — Corvid Playground`;
+const desc =
   description ??
-  'Honest benchmarks for Corvid — including the parts where we lose. Corvid optimizes for correctness, not raw throughput.';
+  'Pick a Corvid example, watch the compiler analyze it in your browser. Delete an approve line and watch the diagnostic appear in real time.';
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{siteTitle}</title>
-  <meta name="description" content={description_} />
+  <title>{fullTitle}</title>
+  <meta name="description" content={desc} />
   <meta name="theme-color" content="#0a0a0a" />
-  <link rel="canonical" href={canonicalUrl} />
+  <link rel="canonical" href={Astro.url.href} />
 
   <link rel="icon" type="image/svg+xml" href="/logos/corvid-mark.svg" />
   <link rel="icon" type="image/png" sizes="192x192" href="/social/favicon-192.png" />
@@ -41,43 +42,38 @@ const description_ =
   />
 
   <meta property="og:type" content="website" />
-  <meta property="og:url" content={canonicalUrl} />
-  <meta property="og:title" content={siteTitle} />
-  <meta property="og:description" content={description_} />
+  <meta property="og:url" content={Astro.url.href} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={desc} />
   <meta property="og:image" content="https://corvid-lang.org/social/og-cover.png" />
   <meta property="og:site_name" content="Corvid" />
   <meta name="twitter:card" content="summary_large_image" />
 </head>
 <body>
-  <nav class="bench-nav">
+  <nav class="pg-nav">
     <a href="/" class="brand" aria-label="Corvid — back to home">
       <img src="/logos/corvid-mark.svg" alt="" width="32" height="32" />
       <span class="wordmark">Corvid</span>
       <span class="sep" aria-hidden="true">/</span>
-      <span class="section-label">Benchmarks</span>
+      <span class="section-label">Playground</span>
     </a>
-    <ul class="nav-links">
+    <ul>
       <li><a href="/docs">Docs</a></li>
-      <li><a href="/playground">Playground</a></li>
       <li><a href="/blog">Blog</a></li>
+      <li><a href="/benchmarks">Benchmarks</a></li>
       <li><a href="https://github.com/Micrurus-Ai/Corvid-lang" target="_blank" rel="noopener">GitHub</a></li>
     </ul>
   </nav>
 
-  <main>
-    <slot />
-  </main>
+  <slot />
 
-  <footer>
-    Corvid. MIT / Apache-2.0
+  <footer class="pg-footer">
+    <span>Typechecks in your browser. No code leaves the page.</span>
     <span aria-hidden="true">·</span>
-    <a href="/">Home</a>
-    <a href="/docs">Docs</a>
-    <a href="/playground">Playground</a>
-    <a href="/blog">Blog</a>
-    <a href="/benchmarks/methodology">Methodology</a>
-    <a href="https://github.com/Micrurus-Ai/Corvid-lang/tree/main/benches" target="_blank" rel="noopener">benches/ on GitHub</a>
-    <span aria-hidden="true">· © 2026</span>
+    <a href="/install">curl install</a>
+    <a href="/docs/book/01-install">Install guide</a>
+    <a href="/docs/reference/guarantees">Guarantees</a>
+    <a href="https://github.com/Micrurus-Ai/Corvid-lang/blob/main/docs/meta/playground-examples-contract.md" target="_blank" rel="noopener">Wire contract</a>
   </footer>
 </body>
 </html>

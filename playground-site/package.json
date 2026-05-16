@@ -1,0 +1,25 @@
+{
+  "name": "corvid-playground-site",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Astro project building the /playground section of corvid-lang.org. Renders the curated tour examples + a terminal-style diagnostic panel against the corvid-browser WASM (typecheck only, Tier 1 per docs/meta/playground-examples-contract.md).",
+  "scripts": {
+    "sync": "node ../scripts/sync-playground-wasm.mjs",
+    "predev": "node ../scripts/sync-playground-wasm.mjs",
+    "dev": "astro dev",
+    "prebuild": "node ../scripts/sync-playground-wasm.mjs",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "astro": "^5.7.0",
+    "shiki": "^1.24.0",
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0"
+  }
+}

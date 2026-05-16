@@ -7,9 +7,15 @@ on:
   # - corvid-lang-docs-changed: docs/** edits rebuild the docs site.
   # - corvid-lang-benches-changed: benches/** edits rebuild the
   #   benchmarks page (new RESULTS.md numbers, new dated sessions).
+  # - corvid-lang-wasm-changed: crates/corvid-browser/** or
+  #   crates/corvid-tour-catalog/** edits rebuild the WASM module
+  #   the playground loads.
   # See docs-site/README.md for the upstream dispatch payload format.
   repository_dispatch:
-    types: [corvid-lang-docs-changed, corvid-lang-benches-changed]
+    types:
+      - corvid-lang-docs-changed
+      - corvid-lang-benches-changed
+      - corvid-lang-wasm-changed
   workflow_dispatch:
 
 # `id-token: write` is required so the runner can mint a GitHub OIDC token
@@ -27,7 +33,7 @@ jobs:
   build-and-deploy:
     name: Build and deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout website repo
@@ -42,6 +48,47 @@ jobs:
             docs-site/package-lock.json
             blog-site/package-lock.json
             benchmarks-site/package-lock.json
+            playground-site/package-lock.json
+
+      # The playground build needs Rust + wasm32 target + wasm-bindgen-cli
+      # to compile the corvid-browser crate to WASM. Same toolchain version
+      # Corvid-lang uses; wasm-bindgen-cli is pinned to match Cargo.lock.
+      - name: Install Rust + wasm32 target
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add wasm32-unknown-unknown
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: cargo-registry-${{ runner.os }}
+          restore-keys: cargo-registry-${{ runner.os }}
+
+      - name: Cache wasm-bindgen-cli
+        id: cache-wasm-bindgen
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-bindgen
+          key: wasm-bindgen-cli-${{ runner.os }}-0.2.120
+
+      - name: Install wasm-bindgen-cli (pinned to match workspace lockfile)
+        if: steps.cache-wasm-bindgen.outputs.cache-hit != 'true'
+        run: cargo install -f wasm-bindgen-cli --version 0.2.120
+
+      - name: Cache .corvid-source build target
+        uses: actions/cache@v4
+        with:
+          path: .corvid-source/target
+          # The cache key intentionally is independent of Corvid-lang's
+          # current HEAD — the cargo incremental cache makes incremental
+          # rebuilds fast even when sources change. New HEAD = recompile
+          # only changed crates, not from scratch.
+          key: corvid-source-target-${{ runner.os }}-v1
+          restore-keys: corvid-source-target-${{ runner.os }}-
 
       - name: Install docs-site dependencies
         working-directory: docs-site
@@ -53,6 +100,10 @@ jobs:
 
       - name: Install benchmarks-site dependencies
         working-directory: benchmarks-site
+        run: npm ci
+
+      - name: Install playground-site dependencies
+        working-directory: playground-site
         run: npm ci
 
       - name: Sync docs from Micrurus-Ai/Corvid-lang
@@ -79,7 +130,16 @@ jobs:
         working-directory: benchmarks-site
         run: npm run build
 
-      - name: Assemble public/ (landing + docs + blog + benchmarks)
+      - name: Build playground
+        # playground-site's prebuild runs sync-playground-wasm.mjs, which
+        # uses the same .corvid-source/ clone and builds the corvid-browser
+        # crate to wasm32-unknown-unknown.
+        env:
+          CORVID_LANG_TOKEN: ${{ secrets.CORVID_LANG_TOKEN }}
+        working-directory: playground-site
+        run: npm run build
+
+      - name: Assemble public/ (landing + docs + blog + benchmarks + playground)
         run: node scripts/assemble-public.mjs
 
       - name: Authenticate to Google Cloud (Workload Identity Federation)

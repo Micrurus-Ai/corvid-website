@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.production
+.DS_Store
+
+# WASM artifacts produced by ../scripts/sync-playground-wasm.mjs.
+# The source of truth lives in upstream Micrurus-Ai/Corvid-lang; the
+# sync script regenerates these locally and in CI before every build.
+public/wasm/

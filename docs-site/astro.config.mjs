@@ -78,6 +78,7 @@ export default defineConfig({
           label: 'Cross-site',
           items: [
             { label: '← Marketing site', link: '/', attrs: { target: '_self' } },
+            { label: 'Playground', link: '/playground', attrs: { target: '_self' } },
             { label: 'Benchmarks', link: '/benchmarks', attrs: { target: '_self' } },
             { label: 'Blog', link: '/blog', attrs: { target: '_self' } },
           ],

@@ -6,10 +6,12 @@
  *   - The marketing landing + SEO surface at /
  *   - The Starlight build output (docs-site/dist/) at /docs/*
  *   - The blog Astro build output (blog-site/dist/) at /blog/*
+ *   - The benchmarks Astro build output (benchmarks-site/dist/) at /benchmarks/*
+ *   - The playground Astro build output (playground-site/dist/) at /playground/*
  *
- * Both Astro projects set their own base path (`/docs` and `/blog`), so
- * the dist trees' internal asset URLs already point at the right roots.
- * We just copy each dist into its mount point under public/.
+ * Each Astro project sets its own base path (`/docs`, `/blog`, `/benchmarks`,
+ * `/playground`), so the dist trees' internal asset URLs already point at
+ * the right roots. We just copy each dist into its mount point under public/.
  *
  * Idempotent: clears ./public before assembling.
  */
@@ -24,6 +26,7 @@ const PUBLIC_DIR = resolve(REPO_ROOT, 'public');
 const DOCS_DIST = resolve(REPO_ROOT, 'docs-site/dist');
 const BLOG_DIST = resolve(REPO_ROOT, 'blog-site/dist');
 const BENCHMARKS_DIST = resolve(REPO_ROOT, 'benchmarks-site/dist');
+const PLAYGROUND_DIST = resolve(REPO_ROOT, 'playground-site/dist');
 
 // Top-level files/dirs that make up the marketing landing + SEO surface.
 const LANDING_ENTRIES = [
@@ -91,6 +94,14 @@ function main() {
     console.log(`[assemble-public] mounted benchmarks-site/dist -> public/benchmarks/`);
   } else {
     console.warn(`[assemble-public] WARNING: benchmarks-site/dist not found — skipping /benchmarks/`);
+  }
+
+  // 5. Copy the playground site into /playground/, if it was built.
+  if (existsSync(PLAYGROUND_DIST)) {
+    copyRecursive(PLAYGROUND_DIST, join(PUBLIC_DIR, 'playground'));
+    console.log(`[assemble-public] mounted playground-site/dist -> public/playground/`);
+  } else {
+    console.warn(`[assemble-public] WARNING: playground-site/dist not found — skipping /playground/`);
   }
 
   console.log(`[assemble-public] public/ assembled`);
